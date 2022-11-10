@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MlogCompiler", "MlogCompiler\MlogCompiler.csproj", "{6F1CFE5A-56F1-4C95-9A84-54602702D3DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F1CFE5A-56F1-4C95-9A84-54602702D3DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F1CFE5A-56F1-4C95-9A84-54602702D3DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F1CFE5A-56F1-4C95-9A84-54602702D3DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F1CFE5A-56F1-4C95-9A84-54602702D3DC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {306267EA-9477-452D-B163-FAE27B16DD86}
+	EndGlobalSection
+EndGlobal
