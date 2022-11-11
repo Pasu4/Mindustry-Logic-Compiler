@@ -20,6 +20,7 @@ namespace MlogCompiler
     {
         static char[] ignoredCharacters = { '\t', '\r', '\n' }; // All characters that are ignored by the compiler
         static char[] parameterSeparators = { ',', '\t', '\r', '\n', ' ' };
+        static string[] mathOps = { "+", "-", "*", "/", "%" , ""};
 
         static int currentLabel;
         static List<int> nextLabels = new List<int> ();
@@ -149,7 +150,7 @@ namespace MlogCompiler
             Instruction instruction = new Instruction();
             Regex firstWordRx = new Regex(@"^(\/\/\/?|\w.*?\b)"); // Find command or comment
             Match match = firstWordRx.Match(line);
-            if(!match.Success && !line.StartsWith("//")) throw new ArgumentException("Critical error");
+            if(!match.Success) throw new ArgumentException("Critical error");
 
             bool hasParameters = true;
 
@@ -192,6 +193,13 @@ namespace MlogCompiler
                     break;
 
                 // Flow control
+                case "Wait":
+                    instruction.instructionType = InstructionType.Wait;
+                    break;
+                case "Stop":
+                    hasParameters = false;
+                    instruction.instructionType = InstructionType.Stop;
+                    break;
                 case "End":
                     hasParameters = false;
                     instruction.instructionType = InstructionType.End;
@@ -239,7 +247,10 @@ namespace MlogCompiler
                 // Variables
                 default:
                     // Interpret everything else as variable (set or op)
-                    // TODO
+                    if(line.Any(c => "+-*/".Contains(c))) // TODO Add all operations
+                        instruction.instructionType = InstructionType.Op;
+                    else
+                        instruction.instructionType = InstructionType.Set;
                     break;
             }
 
@@ -247,7 +258,7 @@ namespace MlogCompiler
             {
                 // Write all parameters to instruction
                 line = line.Remove(line.IndexOf(match.Value), match.Value.Length);
-                Regex parameterRx = new Regex(@"("".+""|\b[\w\d]+\b)");
+                Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))");
 
                 if(match.Value.StartsWith("//")) // Add entire line as parameter for comments
                     instruction.parameters = new string[] { line };
@@ -266,11 +277,13 @@ namespace MlogCompiler
         static List<string> OpeningCode(Instruction instruction)
         {
             List<string> lines = new List<string>();
+            string[]? parameters = instruction.parameters;
 
             switch(instruction.instructionType)
             {
                 case Instruction.InstructionType.Read:
-                    break;
+                    lines.Add($"read {parameters[0]} {parameters[1]} {parameters[2]}");
+                    return lines;
                 case Instruction.InstructionType.Write:
                     break;
                 case Instruction.InstructionType.Draw:
@@ -317,11 +330,11 @@ namespace MlogCompiler
                     return lines;
             }
 
-            throw new NotImplementedException("Instruction is not implemented yet");
+            throw new NotImplementedException("Instruction is not implemented");
         }
 
         /// <summary>
-        /// Returns the last part of mlog code for an instruction
+        /// Returns the last part of mlog code for an instruction. Only used if the instruction has a scope.
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>

@@ -7,8 +7,8 @@
             Null,
             Read, Write, Draw, Print,
             DrawFlush, PrintFlush, GetLink, Control, Radar, Sensor,
-            Set, Op,
-            End, Jump, Label,
+            Set, Op, Lookup, PackColor,
+            Wait, Stop, End, Jump, Label,
             UnitBind, UnitControl, UnitRadar, UnitLocate,
             Comment, CompilerComment,
             ForLoop, WhileLoop, If
