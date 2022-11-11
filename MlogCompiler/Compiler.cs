@@ -16,6 +16,8 @@ namespace MlogCompiler
 
     public static class Compiler
     {
+        static char[] ignoredCharacters = { '\t', '\r', '\n' }; // All characters that are ignored by the compiler
+
         public static SyntaxTree CompileTree(string code, CompilerOptions options = CompilerOptions.None)
         {
             SyntaxTree tree = new SyntaxTree(CompileBranch(code, null, options));
@@ -55,11 +57,20 @@ namespace MlogCompiler
                 if(code[index] == '{')
                 {
                     int lastBracket = code.LastIndexOf('}');
-                    lines.Add(new CodeLine(code.Substring(0, lastBracket + 1))); // Include last bracket
+                    lines.Add(new CodeLine(code.Substring(0, lastBracket + 1), true)); // Include last bracket
                     code = code.Substring(lastBracket + 1);
+                    index = 0;
                     continue;
                 }
             }
+
+            // Remove leading and trailing spaces
+            lines = lines.Select(l => 
+            {
+                l.line = l.line.Trim().Trim(ignoredCharacters);
+                return l;
+            }).ToList();
+
             return lines;
         }
     }
