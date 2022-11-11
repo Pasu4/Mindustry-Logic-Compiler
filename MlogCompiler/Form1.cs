@@ -6,5 +6,10 @@ namespace MlogCompiler
         {
             InitializeComponent();
         }
+
+        private void compileButton_Click(object sender, EventArgs e)
+        {
+            
+        }
     }
 }

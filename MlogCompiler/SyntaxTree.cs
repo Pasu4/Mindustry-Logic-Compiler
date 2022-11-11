@@ -6,16 +6,38 @@ using System.Threading.Tasks;
 
 namespace MlogCompiler
 {
-    public enum Instruction
+    public class Instruction
     {
-        Goto,
-        // TODO
+        public enum InstructionType
+        {
+            Null,
+            Read, Write, Draw, Print,
+            DrawFlush, PrintFlush, GetLink, Control, Radar, Sensor,
+            Set, Op,
+            End, Jump,
+            UnitBind, UnitControl, UnitRadar, UnitLocate,
+            Comment
+        }
+
+        public InstructionType instructionType;
+        public string[]? parameters;
+
+        public Instruction(InstructionType instructionType, string[]? parameters)
+        {
+            this.instructionType = instructionType;
+            this.parameters = parameters;
+        }
+
+        public Instruction()
+        {
+            instructionType = InstructionType.Null;
+            parameters = null;
+        }
     }
 
     public class SyntaxTree
     {
         public SyntaxBranch root;
-
 
         public SyntaxTree(SyntaxBranch branch)
         {
@@ -30,16 +52,27 @@ namespace MlogCompiler
 
     public class SyntaxBranch
     {
-        public SyntaxBranch[] children;
+        public SyntaxBranch? parent;
+        public SyntaxBranch[]? children;
         public Instruction instruction;
 
         public SyntaxBranch()
         {
-            children = new SyntaxBranch[0];
+            parent = null;
+            children = null;
+            instruction = new Instruction();
         }
 
-        public SyntaxBranch(SyntaxBranch[] children, Instruction instruction)
+        public SyntaxBranch(SyntaxBranch? parent)
         {
+            this.parent = parent;
+            children = null;
+            instruction = new Instruction();
+        }
+
+        public SyntaxBranch(SyntaxBranch? parent, SyntaxBranch[] children, Instruction instruction)
+        {
+            this.parent = parent;
             this.children = children;
             this.instruction = instruction;
         }
