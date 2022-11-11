@@ -198,6 +198,8 @@ namespace MlogCompiler
                 default:
                     return lines;
             }
+
+            throw new NotImplementedException("Instruction is not implemented yet");
         }
 
         /// <summary>
