@@ -8,14 +8,15 @@
             Read, Write, Draw, Print,
             DrawFlush, PrintFlush, GetLink, Control, Radar, Sensor,
             Set, Op,
-            End, Jump,
+            End, Jump, Label,
             UnitBind, UnitControl, UnitRadar, UnitLocate,
-            Comment,
+            Comment, CompilerComment,
             ForLoop, WhileLoop, If
         }
 
         public InstructionType instructionType;
         public string[]? parameters;
+        public List<int> labels = new List<int>();
 
         public Instruction(InstructionType instructionType, string[]? parameters)
         {
