@@ -16,7 +16,8 @@ namespace MlogCompiler
             Set, Op,
             End, Jump,
             UnitBind, UnitControl, UnitRadar, UnitLocate,
-            Comment
+            Comment,
+            ForLoop, WhileLoop, If
         }
 
         public InstructionType instructionType;

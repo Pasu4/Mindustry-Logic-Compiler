@@ -14,10 +14,11 @@ namespace MlogCompiler
         WriteOutMethods = 4
     }
 
-
     public static class Compiler
     {
         static char[] ignoredCharacters = { '\t', '\r', '\n' }; // All characters that are ignored by the compiler
+
+        static int currentLabel
 
         /// <summary>
         /// Compiles a tree from code
@@ -73,7 +74,25 @@ namespace MlogCompiler
         /// <returns>Mindustry Logic code</returns>
         public static List<string> ConvertTree(SyntaxTree tree)
         {
+            return ConvertBranch(tree.root);
+        }
 
+        public static List<string> ConvertBranch(SyntaxBranch branch)
+        {
+            List<string> lines = new List<string>();
+
+            // Add opening code
+            lines.AddRange(OpeningCode(branch.instruction));
+
+            // Add code for all children
+            if(branch.children != null)
+                foreach(SyntaxBranch child in branch.children)
+                    lines.AddRange(ConvertBranch(child));
+
+            // Add closing code
+            lines.AddRange(ClosingCode(branch.instruction));
+
+            return lines;
         }
 
         /// <summary>
@@ -115,9 +134,80 @@ namespace MlogCompiler
 
             return lines;
         }
+
         static Instruction LineToInstruction(string line)
         {
             return new Instruction(); // TODO
+        }
+
+        /// <summary>
+        /// Returns the first part of mlog code for an instruction
+        /// </summary>
+        /// <param name="instruction"></param>
+        /// <returns></returns>
+        static List<string> OpeningCode(Instruction instruction)
+        {
+            List<string> lines = new List<string>();
+
+            switch(instruction.instructionType)
+            {
+                case Instruction.InstructionType.Read:
+                    break;
+                case Instruction.InstructionType.Write:
+                    break;
+                case Instruction.InstructionType.Draw:
+                    break;
+                case Instruction.InstructionType.Print:
+                    break;
+                case Instruction.InstructionType.DrawFlush:
+                    break;
+                case Instruction.InstructionType.PrintFlush:
+                    break;
+                case Instruction.InstructionType.GetLink:
+                    break;
+                case Instruction.InstructionType.Control:
+                    break;
+                case Instruction.InstructionType.Radar:
+                    break;
+                case Instruction.InstructionType.Sensor:
+                    break;
+                case Instruction.InstructionType.Set:
+                    break;
+                case Instruction.InstructionType.Op:
+                    break;
+                case Instruction.InstructionType.End:
+                    break;
+                case Instruction.InstructionType.Jump:
+                    break;
+                case Instruction.InstructionType.UnitBind:
+                    break;
+                case Instruction.InstructionType.UnitControl:
+                    break;
+                case Instruction.InstructionType.UnitRadar:
+                    break;
+                case Instruction.InstructionType.UnitLocate:
+                    break;
+                case Instruction.InstructionType.Comment:
+                    break;
+                case Instruction.InstructionType.ForLoop:
+                    break;
+                case Instruction.InstructionType.WhileLoop:
+                    break;
+                case Instruction.InstructionType.If:
+                    break;
+                default:
+                    return lines;
+            }
+        }
+
+        /// <summary>
+        /// Returns the last part of mlog code for an instruction
+        /// </summary>
+        /// <param name="instruction"></param>
+        /// <returns></returns>
+        static List<string> ClosingCode(Instruction instruction)
+        {
+
         }
     }
 }
