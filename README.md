@@ -7,7 +7,7 @@ and exits if the second number is reached after incrementing, meaning the second
 less than the first, the loop counts down instead. For example,
 ```
 j = 0;
-for(i from 0 to 10)
+for(i, 0, 10)
 {
     j += i;
 }
