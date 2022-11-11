@@ -354,7 +354,7 @@ namespace MlogCompiler
                     return lines;
             }
 
-            throw new NotImplementedException("Instruction is not implemented");
+            throw new CompilationException("Instruction is not implemented: " + instruction.instructionType);
         }
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace MlogCompiler
                     return lines;
             }
 
-            throw new NotImplementedException("Instruction is not implemented");
+            throw new CompilationException("Instruction is not implemented: " + instruction.instructionType);
         }
 
         static List<string> ResolveJumps(List<string> _code)

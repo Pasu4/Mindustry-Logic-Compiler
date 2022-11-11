@@ -33,6 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.compileButton = new System.Windows.Forms.Button();
+            this.statusLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // textBox1
@@ -40,7 +41,7 @@
             this.textBox1.Location = new System.Drawing.Point(12, 32);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(385, 371);
+            this.textBox1.Size = new System.Drawing.Size(385, 348);
             this.textBox1.TabIndex = 0;
             // 
             // textBox2
@@ -49,7 +50,7 @@
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
-            this.textBox2.Size = new System.Drawing.Size(385, 371);
+            this.textBox2.Size = new System.Drawing.Size(385, 348);
             this.textBox2.TabIndex = 1;
             this.textBox2.WordWrap = false;
             // 
@@ -81,11 +82,21 @@
             this.compileButton.UseVisualStyleBackColor = true;
             this.compileButton.Click += new System.EventHandler(this.compileButton_Click);
             // 
+            // statusLabel
+            // 
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(12, 383);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(50, 20);
+            this.statusLabel.TabIndex = 5;
+            this.statusLabel.Text = "Ready";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.compileButton);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -105,5 +116,6 @@
         private Label label1;
         private Label label2;
         private Button compileButton;
+        private Label statusLabel;
     }
 }
