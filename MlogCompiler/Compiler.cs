@@ -63,6 +63,7 @@ namespace MlogCompiler
                 {
                     _children.Add(CompileBranch(cl, branch, options));
                 }
+                branch.children = _children.ToArray();
             }
             else
             {
@@ -79,7 +80,7 @@ namespace MlogCompiler
         /// <returns>Mindustry Logic code</returns>
         public static List<string> ConvertTree(SyntaxTree tree)
         {
-            return ConvertBranch(tree.root);
+            return ResolveJumps(ConvertBranch(tree.root));
         }
 
         public static List<string> ConvertBranch(SyntaxBranch branch)
@@ -87,7 +88,7 @@ namespace MlogCompiler
             List<string> lines = new List<string>();
 
             // Add opening code
-            lines.AddRange(OpeningCode(branch.instruction));
+            lines.AddRange(OpeningCode(branch.instruction, out string label));
 
             // Add code for all children
             if(branch.children != null)
@@ -95,7 +96,7 @@ namespace MlogCompiler
                     lines.AddRange(ConvertBranch(child));
 
             // Add closing code
-            lines.AddRange(ClosingCode(branch.instruction));
+            lines.AddRange(ClosingCode(branch.instruction, label));
 
             return lines;
         }
@@ -147,6 +148,8 @@ namespace MlogCompiler
         /// <returns></returns>
         static Instruction LineToInstruction(string line)
         {
+            if(string.IsNullOrEmpty(line)) return new Instruction();
+
             Instruction instruction = new Instruction();
             Regex firstWordRx = new Regex(@"^(\/\/\/?|\w.*?\b)"); // Find command or comment
             Match match = firstWordRx.Match(line);
@@ -274,57 +277,78 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>
-        static List<string> OpeningCode(Instruction instruction)
+        static List<string> OpeningCode(Instruction instruction, out string label)
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
+            label = "";
 
             switch(instruction.instructionType)
             {
+                case InstructionType.Null:
+                    goto default;
                 case Instruction.InstructionType.Read:
                     lines.Add($"read {parameters[0]} {parameters[1]} {parameters[2]}");
                     return lines;
-                case Instruction.InstructionType.Write:
+                case InstructionType.Write:
+                    lines.Add($"write {parameters[0]} {parameters[1]} {parameters[2]}");
+                    return lines;
+                case InstructionType.Draw:
                     break;
-                case Instruction.InstructionType.Draw:
+                case InstructionType.Print:
                     break;
-                case Instruction.InstructionType.Print:
+                case InstructionType.DrawFlush:
                     break;
-                case Instruction.InstructionType.DrawFlush:
+                case InstructionType.PrintFlush:
                     break;
-                case Instruction.InstructionType.PrintFlush:
+                case InstructionType.GetLink:
                     break;
-                case Instruction.InstructionType.GetLink:
+                case InstructionType.Control:
                     break;
-                case Instruction.InstructionType.Control:
+                case InstructionType.Radar:
                     break;
-                case Instruction.InstructionType.Radar:
+                case InstructionType.Sensor:
                     break;
-                case Instruction.InstructionType.Sensor:
+                case InstructionType.Set:
                     break;
-                case Instruction.InstructionType.Set:
+                case InstructionType.Op:
                     break;
-                case Instruction.InstructionType.Op:
+                case InstructionType.Lookup:
                     break;
-                case Instruction.InstructionType.End:
+                case InstructionType.PackColor:
                     break;
-                case Instruction.InstructionType.Jump:
+                case InstructionType.Wait:
                     break;
-                case Instruction.InstructionType.UnitBind:
+                case InstructionType.Stop:
                     break;
-                case Instruction.InstructionType.UnitControl:
+                case InstructionType.End:
                     break;
-                case Instruction.InstructionType.UnitRadar:
+                case InstructionType.Jump:
                     break;
-                case Instruction.InstructionType.UnitLocate:
+                case InstructionType.Label:
                     break;
-                case Instruction.InstructionType.Comment:
+                case InstructionType.UnitBind:
                     break;
-                case Instruction.InstructionType.ForLoop:
+                case InstructionType.UnitControl:
                     break;
-                case Instruction.InstructionType.WhileLoop:
+                case InstructionType.UnitRadar:
                     break;
-                case Instruction.InstructionType.If:
+                case InstructionType.UnitLocate:
+                    break;
+                case InstructionType.Comment:
+                    break;
+                case InstructionType.CompilerComment:
+                    break;
+                case InstructionType.ForLoop:
+                    lines.Add($"set {parameters[0]} {parameters[1]}\n");
+                    lines.Add($"label __for{currentLabel}");
+
+                    label = $"__for{currentLabel}";
+                    currentLabel++;
+                    return lines;
+                case InstructionType.WhileLoop:
+                    break;
+                case InstructionType.If:
                     break;
                 default:
                     return lines;
@@ -338,61 +362,66 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>
-        static List<string> ClosingCode(Instruction instruction)
+        static List<string> ClosingCode(Instruction instruction, string label)
         {
             List<string> lines = new List<string>();
+            string[] parameters = instruction.parameters;
 
             switch(instruction.instructionType)
             {
-                case Instruction.InstructionType.Read:
+                case InstructionType.ForLoop:
+                    bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
+                    lines.Add($"op {(ascent ? "add" : "sub")} i i 1");
+                    lines.Add($"jump {label} {(ascent ? "lessThan" : "greaterThan")} {parameters[0]} {parameters[2]}");
+                    return lines;
+                case InstructionType.WhileLoop:
                     break;
-                case Instruction.InstructionType.Write:
-                    break;
-                case Instruction.InstructionType.Draw:
-                    break;
-                case Instruction.InstructionType.Print:
-                    break;
-                case Instruction.InstructionType.DrawFlush:
-                    break;
-                case Instruction.InstructionType.PrintFlush:
-                    break;
-                case Instruction.InstructionType.GetLink:
-                    break;
-                case Instruction.InstructionType.Control:
-                    break;
-                case Instruction.InstructionType.Radar:
-                    break;
-                case Instruction.InstructionType.Sensor:
-                    break;
-                case Instruction.InstructionType.Set:
-                    break;
-                case Instruction.InstructionType.Op:
-                    break;
-                case Instruction.InstructionType.End:
-                    break;
-                case Instruction.InstructionType.Jump:
-                    break;
-                case Instruction.InstructionType.UnitBind:
-                    break;
-                case Instruction.InstructionType.UnitControl:
-                    break;
-                case Instruction.InstructionType.UnitRadar:
-                    break;
-                case Instruction.InstructionType.UnitLocate:
-                    break;
-                case Instruction.InstructionType.Comment:
-                    break;
-                case Instruction.InstructionType.ForLoop:
-                    break;
-                case Instruction.InstructionType.WhileLoop:
-                    break;
-                case Instruction.InstructionType.If:
+                case InstructionType.If:
                     break;
                 default:
                     return lines;
             }
 
-            throw new NotImplementedException("Instruction is not implemented yet");
+            throw new NotImplementedException("Instruction is not implemented");
+        }
+
+        static List<string> ResolveJumps(List<string> _code)
+        {
+            List<string> code = new List<string>(_code); // Shallow copy
+            Dictionary<string, int> jumps = new Dictionary<string, int>();
+            int i = 0;
+            while(i < code.Count)
+            {
+                if(code[i].StartsWith("label "))
+                {
+                    jumps.Add(code[i].Substring(6), i); // Cut off "label "
+                    code.RemoveAt(i);
+                    continue;
+                }
+                i++;
+            }
+
+            for(i = 0; i < code.Count; i++)
+            {
+                if(code[i].StartsWith("jump "))
+                {
+                    string last = code[i].Substring(5); // Cut off "goto "
+                    string label = last;
+                    if(label.Contains(' '))
+                    {
+                        label = label.Remove(label.IndexOf(' ')); // Remove parameters
+                        last = last.Substring(last.IndexOf(' '));
+                    }
+                    else
+                        last = "";
+
+                    if(!jumps.ContainsKey(label))
+                        throw new CompilationException($"There is no label called \"{label}\"");
+                    code[i] = code[i].Remove(5) + jumps[label] + last;
+                }
+            }
+
+            return code;
         }
     }
 }
