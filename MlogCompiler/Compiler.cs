@@ -175,11 +175,9 @@ namespace MlogCompiler
 
                 // Building control
                 case "DrawFlush":
-                    hasParameters = false;
                     instruction.instructionType = InstructionType.DrawFlush;
                     break;
                 case "PrintFlush":
-                    hasParameters = false;
                     instruction.instructionType = InstructionType.PrintFlush;
                     break;
                 case "GetLink":
@@ -296,11 +294,13 @@ namespace MlogCompiler
                 case InstructionType.Draw:
                     break;
                 case InstructionType.Print:
-                    break;
+                    lines.Add($"print {parameters[0]}");
+                    return lines;
                 case InstructionType.DrawFlush:
                     break;
                 case InstructionType.PrintFlush:
-                    break;
+                    lines.Add($"printflush {parameters[0]}");
+                    return lines;
                 case InstructionType.GetLink:
                     break;
                 case InstructionType.Control:
@@ -371,7 +371,7 @@ namespace MlogCompiler
             {
                 case InstructionType.ForLoop:
                     bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
-                    lines.Add($"op {(ascent ? "add" : "sub")} i i 1");
+                    lines.Add($"op {(ascent ? "add" : "sub")} {parameters[0]} {parameters[0]} 1");
                     lines.Add($"jump {label} {(ascent ? "lessThan" : "greaterThan")} {parameters[0]} {parameters[2]}");
                     return lines;
                 case InstructionType.WhileLoop:
