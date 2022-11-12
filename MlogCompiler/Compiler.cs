@@ -273,7 +273,7 @@ namespace MlogCompiler
                 else
                     line = line.Remove(line.IndexOf(match.Value), match.Value.Length);
 
-                Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))");
+                Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))"); // Match all parameters
 
                 if(match.Value.StartsWith("//")) // Add entire line as parameter for comments
                     instruction.parameters = new string[] { line };
@@ -293,6 +293,7 @@ namespace MlogCompiler
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
+            // if(parameters is null) throw new CompilationException("Method that should have arguments has none");
             label = "";
 
             switch(instruction.instructionType)
@@ -316,7 +317,8 @@ namespace MlogCompiler
                     lines.Add($"printflush {parameters[0]}");
                     return lines;
                 case InstructionType.GetLink:
-                    break;
+                    lines.Add($"getlink {parameters[0]} {parameters[1]}");
+                    return lines;
                 case InstructionType.Control:
                     break;
                 case InstructionType.Radar:
@@ -385,8 +387,8 @@ namespace MlogCompiler
             {
                 case InstructionType.ForLoop:
                     bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
-                    lines.Add($"op {(ascent ? "add" : "sub")} {parameters[0]} {parameters[0]} 1");
-                    lines.Add($"jump {label} {(ascent ? "lessThan" : "greaterThan")} {parameters[0]} {parameters[2]}");
+                    lines.Add($"op add {parameters[0]} {parameters[0]} 1");
+                    lines.Add($"jump {label} lessThan {parameters[0]} {parameters[2]}");
                     return lines;
                 case InstructionType.WhileLoop:
                     break;
