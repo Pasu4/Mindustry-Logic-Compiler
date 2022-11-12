@@ -312,7 +312,8 @@ namespace MlogCompiler
                     lines.Add($"print {parameters[0]}");
                     return lines;
                 case InstructionType.DrawFlush:
-                    break;
+                    lines.Add($"drawflush {parameters[0]}");
+                    return lines;
                 case InstructionType.PrintFlush:
                     lines.Add($"printflush {parameters[0]}");
                     return lines;
