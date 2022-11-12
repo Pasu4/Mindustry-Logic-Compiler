@@ -152,12 +152,18 @@ namespace MlogCompiler
 
             Instruction instruction = new Instruction();
             Regex firstWordRx = new Regex(@"^(\/\/\/?|\w.*?\b)"); // Find command or comment
+            Regex assignmentRx = new Regex(@"^(\w[\w\d]*?) = (\w.*?\b(?=\())"); // Method assignment
             Match match = firstWordRx.Match(line);
-            if(!match.Success) throw new ArgumentException("Critical error");
+            Match assignmentMatch = assignmentRx.Match(line);
+
+            // Check if the line is an assignment
+            bool isAssignment = assignmentMatch.Success;
+
+            if(!match.Success && !assignmentMatch.Success) throw new ArgumentException("Critical error");
 
             bool hasParameters = true;
 
-            switch(match.Value)
+            switch(isAssignment ? assignmentMatch.Groups[2].Value : match.Value)
             {
                 // I/O
                 case "Read":
@@ -258,7 +264,15 @@ namespace MlogCompiler
             if(hasParameters)
             {
                 // Write all parameters to instruction
-                line = line.Remove(line.IndexOf(match.Value), match.Value.Length);
+                if(isAssignment)
+                {
+                    Regex removeAssignmentRx = new Regex(@" = (\w.*?\b(?=\())"); // Match method name and " = " without bracket
+                    Match match1 = removeAssignmentRx.Match(line);
+                    line = line.Remove(line.IndexOf(match1.Value), match1.Value.Length);
+                }
+                else
+                    line = line.Remove(line.IndexOf(match.Value), match.Value.Length);
+
                 Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))");
 
                 if(match.Value.StartsWith("//")) // Add entire line as parameter for comments
