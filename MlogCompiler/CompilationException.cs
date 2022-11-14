@@ -9,5 +9,6 @@ namespace MlogCompiler
     public class CompilationException : Exception
     {
         public CompilationException(string message) : base(message) { }
+        public CompilationException(string message, int line) : base($"Line {line}: {message}") { }
     }
 }

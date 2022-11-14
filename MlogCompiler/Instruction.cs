@@ -17,6 +17,7 @@
         public InstructionType instructionType;
         public string[]? parameters;
         public List<int> labels = new List<int>();
+        // public int line;
 
         public Instruction(InstructionType instructionType, string[]? parameters)
         {

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static MlogCompiler.Instruction;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace MlogCompiler
 {
@@ -167,9 +168,18 @@ namespace MlogCompiler
                 throw new ArgumentException("Syntax error");
 
             bool hasParameters = true;
+            bool isOp = false;
 
             string method = isAssignment ? assignmentMatch.Groups[2].Value : isCall ? callMatch.Groups[2].Value : match.Value;
             int mainIndex = 0; // Index where to place the main variable
+            string[] ops = // Operation keywords
+            {
+                " + ", " - ", " * ", " / ", "//", " % ", " ^ ",
+                " == ", " != ", " && ", " < ", " <= ", " > ", " >= ", " === ",
+                " << ", " >> ", " | ", " & ", " xor ", " flip(",
+                " max(", " min(", " angle(", " len(", " noise(", " abs(", " log(", " log10(", " floor(", " ceil(", " sqrt(", " rand(",
+                " sin(", " cos(", " tan(", " asin(", " acos(", " atan(",
+            };
 
             // Resolve main instruction
             switch(method)
@@ -205,6 +215,7 @@ namespace MlogCompiler
                     break;
                 case "Radar":
                     instruction.instructionType = InstructionType.Radar;
+                    mainIndex = 6;
                     break;
                 case "Sensor":
                     instruction.instructionType = InstructionType.Sensor;
@@ -222,9 +233,11 @@ namespace MlogCompiler
                     hasParameters = false;
                     instruction.instructionType = InstructionType.End;
                     break;
+                case "jump":
                 case "Jump":
                     instruction.instructionType = InstructionType.Jump;
                     break;
+                case "label":
                 case "Label":
                     instruction.instructionType = InstructionType.Label;
                     break;
@@ -262,18 +275,73 @@ namespace MlogCompiler
                     instruction.instructionType = InstructionType.If;
                     break;
 
-                // Variables
+                // Interpret everything else as variable (set or op)
                 default:
-                    // Interpret everything else as variable (set or op)
-                    if(line.Any(c => "+-*/".Contains(c))) // TODO Add all operations
-                        instruction.instructionType = InstructionType.Op;
-                    else
-                        instruction.instructionType = InstructionType.Set;
+                    isOp = ops.Any(op => line.Contains(op));
+                    instruction.instructionType = isOp ? InstructionType.Op : InstructionType.Set;
                     break;
             }
 
             if(hasParameters)
             {
+                Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))"); // Match all parameters
+
+                // Special handling for Op
+                if(instruction.instructionType == InstructionType.Op)
+                {
+                    string op = ops.First(o => line.Contains(o));
+                    op = op.Trim(' ', '(');
+                    string op2 = OpToMlog(op);
+                    line = line
+                        .Remove(line.IndexOf(op), op.Length)
+                        .Remove(line.IndexOf('='), 1);
+
+                    List<string> list = new List<string> { op2 };
+                    list.AddRange(parameterRx.Matches(line).Select(m => m.Value));
+                    instruction.parameters = list.ToArray();
+
+                    return instruction;
+                }
+                // Special handling for Set
+                else if(instruction.instructionType == InstructionType.Set)
+                {
+                    try
+                    {
+                        line = line.Remove(line.IndexOf('='), 1);
+                        instruction.parameters = parameterRx.Matches(line).Select(m => m.Value).ToArray();
+
+                        return instruction;
+                    }
+                    catch(ArgumentOutOfRangeException)
+                    {
+                        // There was no set operation
+                        throw new CompilationException("Method not recognized");
+                    }
+                }
+                // Special handling for Jump
+                else if(instruction.instructionType == InstructionType.Jump)
+                {
+                    line = line.Substring(5); // Cut off "Jump"
+
+                    bool conditional = line.Contains(" if ") || line.Contains(" if(");
+                    if(conditional)
+                    {
+                        line = line.Replace(" if ", " ").Replace(" if(", " ");
+                        instruction.parameters = parameterRx.Matches(line).Select(m => m.Value).ToArray();
+                        string op = instruction.parameters[2];
+                        List<string> list = instruction.parameters.ToList();
+                        list.RemoveAt(2);
+                        list.Insert(0, OpToMlog(op));
+                    }
+                    else
+                    {
+                        line += " always";
+                        instruction.parameters = parameterRx.Matches(line).Select(m => m.Value).ToArray();
+                    }
+
+                    return instruction;
+                }
+
                 // Write all parameters to instruction
                 if(isAssignment)
                 {
@@ -289,8 +357,6 @@ namespace MlogCompiler
                 }
                 else
                     line = line.Remove(line.IndexOf(match.Value), match.Value.Length);
-
-                Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))"); // Match all parameters
 
                 if(match.Value.StartsWith("//")) // Add entire line as parameter for comments
                     instruction.parameters = new string[] { line };
@@ -335,6 +401,8 @@ namespace MlogCompiler
                 {InstructionType.Control, "control"},
                 {InstructionType.Radar, "radar"},
                 {InstructionType.Sensor, "sensor"},
+                {InstructionType.Set, "set"},
+                {InstructionType.Op, "op"},
                 {InstructionType.Lookup, "lookup"},
                 {InstructionType.PackColor, "packcolor"},
                 {InstructionType.Wait, "wait"},
@@ -359,9 +427,8 @@ namespace MlogCompiler
                         goto case InstructionType.Null;
                     case InstructionType.ForLoop:
                         lines.Add($"set {parameters[0]} {parameters[1]}\n");
-                        lines.Add($"label __for{currentLabel}");
-
                         label = $"__for{currentLabel}";
+                        lines.Add("label " + label);
                         currentLabel++;
                         return lines;
                     case InstructionType.WhileLoop:
@@ -369,6 +436,7 @@ namespace MlogCompiler
                     case InstructionType.If:
                         break;
                     default:
+                        lines.Add(instructions[instruction.instructionType] + " " + string.Join(' ', parameters));
                         return lines;
                 }
             }
@@ -414,14 +482,16 @@ namespace MlogCompiler
             List<string> code = new List<string>(_code); // Shallow copy
             Dictionary<string, int> jumps = new Dictionary<string, int>();
             int i = 0;
+            int l = 0;
             while(i < code.Count)
             {
                 if(code[i].StartsWith("label "))
                 {
-                    jumps.Add(code[i].Substring(6), i); // Cut off "label "
+                    jumps.Add(code[i].Substring(6), l); // Cut off "label "
                     code.RemoveAt(i);
                     continue;
                 }
+                if(!code[i].StartsWith('#')) l++; // Don't count comments
                 i++;
             }
 
@@ -447,5 +517,35 @@ namespace MlogCompiler
 
             return code;
         }
+
+        /// <summary>
+        /// Converts an operator to an mlog operator
+        /// </summary>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public static string OpToMlog(string op) => op switch
+        {
+            "+" => "add",
+            "-" => "sub",
+            "*" => "mul",
+            "/" => "div",
+            "//" => "idiv",
+            "%" => "mod",
+            "^" => "pow",
+            "==" => "equal",
+            "!=" => "notEqual",
+            "&&" => "land",
+            "<" => "lessThan",
+            "<=" => "lessThanEq",
+            ">" => "greaterThan",
+            ">=" => "greaterThanEq",
+            "===" => "strictEqual",
+            "<<" => "shl",
+            ">>" => "shr",
+            "|" => "or",
+            "&" => "and",
+            "flip" => "not",
+            _ => op
+        };
     }
 }
