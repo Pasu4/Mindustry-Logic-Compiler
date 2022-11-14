@@ -153,17 +153,25 @@ namespace MlogCompiler
             Instruction instruction = new Instruction();
             Regex firstWordRx = new Regex(@"^(\/\/\/?|\w.*?\b)"); // Find command or comment
             Regex assignmentRx = new Regex(@"^(\w[\w\d]*?) = (\w.*?\b(?=\())"); // Method assignment
+            Regex callRx = new Regex(@"^(\w[\w\d]*?)\.(\w.*?\b(?=\())"); // Match method call with .Method()
+
             Match match = firstWordRx.Match(line);
             Match assignmentMatch = assignmentRx.Match(line);
+            Match callMatch = callRx.Match(line);
 
             // Check if the line is an assignment
             bool isAssignment = assignmentMatch.Success;
+            bool isCall = callMatch.Success;
 
-            if(!match.Success && !assignmentMatch.Success) throw new ArgumentException("Critical error");
+            if(!match.Success && !isAssignment && !isCall)
+                throw new ArgumentException("Syntax error");
 
             bool hasParameters = true;
 
-            switch(isAssignment ? assignmentMatch.Groups[2].Value : match.Value)
+            string method = isAssignment ? assignmentMatch.Groups[2].Value : isCall ? callMatch.Groups[2].Value : match.Value;
+            int mainIndex = 0; // Index where to place the main variable
+
+            switch(method)
             {
                 // I/O
                 case "Read":
@@ -171,6 +179,7 @@ namespace MlogCompiler
                     break;
                 case "Write":
                     instruction.instructionType = InstructionType.Write;
+                    mainIndex = 1;
                     break;
                 case "Draw":
                     instruction.instructionType = InstructionType.Draw;
@@ -270,6 +279,12 @@ namespace MlogCompiler
                     Match match1 = removeAssignmentRx.Match(line);
                     line = line.Remove(line.IndexOf(match1.Value), match1.Value.Length);
                 }
+                else if(isCall)
+                {
+                    Regex removeCallRx = new Regex(@"\.(\w.*?\b(?=\())");
+                    Match match1 = removeCallRx.Match(line);
+                    line = line.Remove(line.IndexOf(match1.Value), match1.Value.Length);
+                }
                 else
                     line = line.Remove(line.IndexOf(match.Value), match.Value.Length);
 
@@ -279,6 +294,15 @@ namespace MlogCompiler
                     instruction.parameters = new string[] { line };
                 else
                     instruction.parameters = parameterRx.Matches(line).Select(m => m.Value).ToArray();
+
+                // Put main variable at correct index
+                if(mainIndex != 0 && (isAssignment || isCall)) // Only if method is assigned or called on variable
+                {
+                    string mainVar = instruction.parameters[0];
+                    List<string> list = instruction.parameters.Skip(1).ToList();
+                    list.Insert(mainIndex, mainVar);
+                    instruction.parameters = list.ToArray();
+                }
             }
 
             return instruction;
@@ -321,6 +345,7 @@ namespace MlogCompiler
                     lines.Add($"getlink {parameters[0]} {parameters[1]}");
                     return lines;
                 case InstructionType.Control:
+
                     break;
                 case InstructionType.Radar:
                     break;
