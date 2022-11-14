@@ -317,83 +317,90 @@ namespace MlogCompiler
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
-            // if(parameters is null) throw new CompilationException("Method that should have arguments has none");
             label = "";
+            if(parameters is null) return lines;
 
-            switch(instruction.instructionType)
+            try
             {
-                case InstructionType.Null:
-                    goto default;
-                case Instruction.InstructionType.Read:
-                    lines.Add($"read {parameters[0]} {parameters[1]} {parameters[2]}");
-                    return lines;
-                case InstructionType.Write:
-                    lines.Add($"write {parameters[0]} {parameters[1]} {parameters[2]}");
-                    return lines;
-                case InstructionType.Draw:
-                    break;
-                case InstructionType.Print:
-                    lines.Add($"print {parameters[0]}");
-                    return lines;
-                case InstructionType.DrawFlush:
-                    lines.Add($"drawflush {parameters[0]}");
-                    return lines;
-                case InstructionType.PrintFlush:
-                    lines.Add($"printflush {parameters[0]}");
-                    return lines;
-                case InstructionType.GetLink:
-                    lines.Add($"getlink {parameters[0]} {parameters[1]}");
-                    return lines;
-                case InstructionType.Control:
+                switch(instruction.instructionType)
+                {
+                    case InstructionType.Null:
+                        goto default;
+                    case Instruction.InstructionType.Read:
+                        lines.Add($"read {parameters[0]} {parameters[1]} {parameters[2]}");
+                        return lines;
+                    case InstructionType.Write:
+                        lines.Add($"write {parameters[0]} {parameters[1]} {parameters[2]}");
+                        return lines;
+                    case InstructionType.Draw:
+                        break;
+                    case InstructionType.Print:
+                        lines.Add($"print {parameters[0]}");
+                        return lines;
+                    case InstructionType.DrawFlush:
+                        lines.Add($"drawflush {parameters[0]}");
+                        return lines;
+                    case InstructionType.PrintFlush:
+                        lines.Add($"printflush {parameters[0]}");
+                        return lines;
+                    case InstructionType.GetLink:
+                        lines.Add($"getlink {parameters[0]} {parameters[1]}");
+                        return lines;
+                    case InstructionType.Control:
 
-                    break;
-                case InstructionType.Radar:
-                    break;
-                case InstructionType.Sensor:
-                    break;
-                case InstructionType.Set:
-                    break;
-                case InstructionType.Op:
-                    break;
-                case InstructionType.Lookup:
-                    break;
-                case InstructionType.PackColor:
-                    break;
-                case InstructionType.Wait:
-                    break;
-                case InstructionType.Stop:
-                    break;
-                case InstructionType.End:
-                    break;
-                case InstructionType.Jump:
-                    break;
-                case InstructionType.Label:
-                    break;
-                case InstructionType.UnitBind:
-                    break;
-                case InstructionType.UnitControl:
-                    break;
-                case InstructionType.UnitRadar:
-                    break;
-                case InstructionType.UnitLocate:
-                    break;
-                case InstructionType.Comment:
-                    break;
-                case InstructionType.CompilerComment:
-                    break;
-                case InstructionType.ForLoop:
-                    lines.Add($"set {parameters[0]} {parameters[1]}\n");
-                    lines.Add($"label __for{currentLabel}");
+                        break;
+                    case InstructionType.Radar:
+                        break;
+                    case InstructionType.Sensor:
+                        break;
+                    case InstructionType.Set:
+                        break;
+                    case InstructionType.Op:
+                        break;
+                    case InstructionType.Lookup:
+                        break;
+                    case InstructionType.PackColor:
+                        break;
+                    case InstructionType.Wait:
+                        break;
+                    case InstructionType.Stop:
+                        break;
+                    case InstructionType.End:
+                        break;
+                    case InstructionType.Jump:
+                        break;
+                    case InstructionType.Label:
+                        break;
+                    case InstructionType.UnitBind:
+                        break;
+                    case InstructionType.UnitControl:
+                        break;
+                    case InstructionType.UnitRadar:
+                        break;
+                    case InstructionType.UnitLocate:
+                        break;
+                    case InstructionType.Comment:
+                        break;
+                    case InstructionType.CompilerComment:
+                        break;
+                    case InstructionType.ForLoop:
+                        lines.Add($"set {parameters[0]} {parameters[1]}\n");
+                        lines.Add($"label __for{currentLabel}");
 
-                    label = $"__for{currentLabel}";
-                    currentLabel++;
-                    return lines;
-                case InstructionType.WhileLoop:
-                    break;
-                case InstructionType.If:
-                    break;
-                default:
-                    return lines;
+                        label = $"__for{currentLabel}";
+                        currentLabel++;
+                        return lines;
+                    case InstructionType.WhileLoop:
+                        break;
+                    case InstructionType.If:
+                        break;
+                    default:
+                        return lines;
+                }
+            }
+            catch(IndexOutOfRangeException)
+            {
+                throw new CompilationException("Incorrect number of parameters");
             }
 
             throw new CompilationException("Instruction is not implemented: " + instruction.instructionType);
@@ -407,7 +414,8 @@ namespace MlogCompiler
         static List<string> ClosingCode(Instruction instruction, string label)
         {
             List<string> lines = new List<string>();
-            string[] parameters = instruction.parameters;
+            string[]? parameters = instruction.parameters;
+            if(parameters is null) return lines;
 
             switch(instruction.instructionType)
             {
