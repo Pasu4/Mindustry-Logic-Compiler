@@ -171,6 +171,7 @@ namespace MlogCompiler
             string method = isAssignment ? assignmentMatch.Groups[2].Value : isCall ? callMatch.Groups[2].Value : match.Value;
             int mainIndex = 0; // Index where to place the main variable
 
+            // Resolve main instruction
             switch(method)
             {
                 // I/O
@@ -200,6 +201,7 @@ namespace MlogCompiler
                     break;
                 case "Control":
                     instruction.instructionType = InstructionType.Control;
+                    mainIndex = 1;
                     break;
                 case "Radar":
                     instruction.instructionType = InstructionType.Radar;
@@ -320,69 +322,41 @@ namespace MlogCompiler
             label = "";
             if(parameters is null) return lines;
 
+            // Mlog code for each instruction type
+            Dictionary<InstructionType, string> instructions = new Dictionary<InstructionType, string>()
+            {
+                {InstructionType.Read, "read"},
+                {InstructionType.Write, "write"},
+                {InstructionType.Draw, "draw"},
+                {InstructionType.Print, "print"},
+                {InstructionType.DrawFlush, "drawflush"},
+                {InstructionType.PrintFlush, "printflush"},
+                {InstructionType.GetLink, "getlink"},
+                {InstructionType.Control, "control"},
+                {InstructionType.Radar, "radar"},
+                {InstructionType.Sensor, "sensor"},
+                {InstructionType.Lookup, "lookup"},
+                {InstructionType.PackColor, "packcolor"},
+                {InstructionType.Wait, "wait"},
+                {InstructionType.Stop, "stop"},
+                {InstructionType.End, "end"},
+                {InstructionType.Jump, "jump"},
+                {InstructionType.Label, "label"},
+                {InstructionType.UnitBind, "ubind"},
+                {InstructionType.UnitControl, "ucontrol"},
+                {InstructionType.UnitRadar, "uradar"},
+                {InstructionType.UnitLocate, "ulocate"},
+                {InstructionType.Comment, "#"},
+            };
+
             try
             {
                 switch(instruction.instructionType)
                 {
                     case InstructionType.Null:
-                        goto default;
-                    case Instruction.InstructionType.Read:
-                        lines.Add($"read {parameters[0]} {parameters[1]} {parameters[2]}");
                         return lines;
-                    case InstructionType.Write:
-                        lines.Add($"write {parameters[0]} {parameters[1]} {parameters[2]}");
-                        return lines;
-                    case InstructionType.Draw:
-                        break;
-                    case InstructionType.Print:
-                        lines.Add($"print {parameters[0]}");
-                        return lines;
-                    case InstructionType.DrawFlush:
-                        lines.Add($"drawflush {parameters[0]}");
-                        return lines;
-                    case InstructionType.PrintFlush:
-                        lines.Add($"printflush {parameters[0]}");
-                        return lines;
-                    case InstructionType.GetLink:
-                        lines.Add($"getlink {parameters[0]} {parameters[1]}");
-                        return lines;
-                    case InstructionType.Control:
-
-                        break;
-                    case InstructionType.Radar:
-                        break;
-                    case InstructionType.Sensor:
-                        break;
-                    case InstructionType.Set:
-                        break;
-                    case InstructionType.Op:
-                        break;
-                    case InstructionType.Lookup:
-                        break;
-                    case InstructionType.PackColor:
-                        break;
-                    case InstructionType.Wait:
-                        break;
-                    case InstructionType.Stop:
-                        break;
-                    case InstructionType.End:
-                        break;
-                    case InstructionType.Jump:
-                        break;
-                    case InstructionType.Label:
-                        break;
-                    case InstructionType.UnitBind:
-                        break;
-                    case InstructionType.UnitControl:
-                        break;
-                    case InstructionType.UnitRadar:
-                        break;
-                    case InstructionType.UnitLocate:
-                        break;
-                    case InstructionType.Comment:
-                        break;
                     case InstructionType.CompilerComment:
-                        break;
+                        goto case InstructionType.Null;
                     case InstructionType.ForLoop:
                         lines.Add($"set {parameters[0]} {parameters[1]}\n");
                         lines.Add($"label __for{currentLabel}");
