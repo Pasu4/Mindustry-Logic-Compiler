@@ -461,7 +461,7 @@ namespace MlogCompiler
                         currentLabel++;
                         return lines;
                     case InstructionType.Comment:
-                        lines.AddRange(parameters[0].Split(Environment.NewLine).Select(l => "# " + l));
+                        lines.AddRange(parameters[0].Split(Environment.NewLine).Select(l => "# " + l.Trim()));
                         return lines;
                     default:
                         string str = instructions[instruction.instructionType];
