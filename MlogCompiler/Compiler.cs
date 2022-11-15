@@ -81,7 +81,8 @@ namespace MlogCompiler
         /// <returns>Mindustry Logic code</returns>
         public static List<string> ConvertTree(SyntaxTree tree)
         {
-            return ResolveJumps(ConvertBranch(tree.root));
+            List<string> result = ConvertBranch(tree.root);
+            return ResolveJumps(result);
         }
 
         public static List<string> ConvertBranch(SyntaxBranch branch)
@@ -168,7 +169,7 @@ namespace MlogCompiler
                 throw new ArgumentException("Syntax error");
 
             bool hasParameters = true;
-            bool isOp = false;
+            bool special = false; // Wether to handle the operation seperately
 
             string method = isAssignment ? assignmentMatch.Groups[2].Value : isCall ? callMatch.Groups[2].Value : match.Value;
             int mainIndex = 0; // Index where to place the main variable
@@ -182,77 +183,80 @@ namespace MlogCompiler
             };
 
             // Resolve main instruction
-            switch(method)
+            switch(method.ToLower())
             {
                 // I/O
-                case "Read":
+                case "read":
                     instruction.instructionType = InstructionType.Read;
                     break;
-                case "Write":
+                case "write":
                     instruction.instructionType = InstructionType.Write;
                     mainIndex = 1;
                     break;
-                case "Draw":
+                case "draw":
                     instruction.instructionType = InstructionType.Draw;
                     break;
-                case "Print":
+                case "print":
                     instruction.instructionType = InstructionType.Print;
                     break;
 
                 // Building control
-                case "DrawFlush":
+                case "drawflush":
                     instruction.instructionType = InstructionType.DrawFlush;
                     break;
-                case "PrintFlush":
+                case "printFlush":
                     instruction.instructionType = InstructionType.PrintFlush;
                     break;
-                case "GetLink":
+                case "getlink":
                     instruction.instructionType = InstructionType.GetLink;
                     break;
-                case "Control":
+                case "control":
                     instruction.instructionType = InstructionType.Control;
                     mainIndex = 1;
                     break;
-                case "Radar":
+                case "radar":
                     instruction.instructionType = InstructionType.Radar;
                     mainIndex = 6;
                     break;
-                case "Sensor":
+                case "sensor":
                     instruction.instructionType = InstructionType.Sensor;
                     break;
 
                 // Flow control
-                case "Wait":
+                case "wait":
                     instruction.instructionType = InstructionType.Wait;
                     break;
-                case "Stop":
+                case "stop":
                     hasParameters = false;
                     instruction.instructionType = InstructionType.Stop;
                     break;
-                case "End":
+                case "end":
                     hasParameters = false;
                     instruction.instructionType = InstructionType.End;
                     break;
                 case "jump":
-                case "Jump":
-                    instruction.instructionType = InstructionType.Jump;
+                    instruction.instructionType= InstructionType.Jump;
+                    special = true;
                     break;
                 case "label":
-                case "Label":
                     instruction.instructionType = InstructionType.Label;
                     break;
 
                 // Unit control
-                case "UnitBind":
+                case "unitbind":
+                case "ubind":
                     instruction.instructionType = InstructionType.UnitBind;
                     break;
-                case "UnitControl":
+                case "unitcontrol":
+                case "ucontrol":
                     instruction.instructionType = InstructionType.UnitControl;
                     break;
-                case "UnitRadar":
+                case "unitradar":
+                case "uradar":
                     instruction.instructionType = InstructionType.UnitRadar;
                     break;
-                case "UnitLocate":
+                case "unitlocate":
+                case "ulocate":
                     instruction.instructionType = InstructionType.UnitLocate;
                     break;
 
@@ -275,10 +279,18 @@ namespace MlogCompiler
                     instruction.instructionType = InstructionType.If;
                     break;
 
+                // Explicit Set / Op (for mlog import)
+                case "set":
+                    instruction.instructionType = InstructionType.Set;
+                    break;
+                case "op":
+                    instruction.instructionType = InstructionType.Op;
+                    break;
+
                 // Interpret everything else as variable (set or op)
                 default:
-                    isOp = ops.Any(op => line.Contains(op));
-                    instruction.instructionType = isOp ? InstructionType.Op : InstructionType.Set;
+                    special = true;
+                    instruction.instructionType = ops.Any(op => line.Contains(op)) ? InstructionType.Op : InstructionType.Set;
                     break;
             }
 
@@ -287,7 +299,7 @@ namespace MlogCompiler
                 Regex parameterRx = new Regex(@"("".+""|(\b|\B)[^\s,\(\)]+(\b|\B))"); // Match all parameters
 
                 // Special handling for Op
-                if(instruction.instructionType == InstructionType.Op)
+                if(special && instruction.instructionType == InstructionType.Op)
                 {
                     string op = ops.First(o => line.Contains(o));
                     op = op.Trim(' ', '(');
@@ -303,7 +315,7 @@ namespace MlogCompiler
                     return instruction;
                 }
                 // Special handling for Set
-                else if(instruction.instructionType == InstructionType.Set)
+                else if(special && instruction.instructionType == InstructionType.Set)
                 {
                     try
                     {
@@ -319,7 +331,7 @@ namespace MlogCompiler
                     }
                 }
                 // Special handling for Jump
-                else if(instruction.instructionType == InstructionType.Jump)
+                else if(special && instruction.instructionType == InstructionType.Jump)
                 {
                     line = line.Substring(5); // Cut off "Jump"
 
@@ -331,7 +343,8 @@ namespace MlogCompiler
                         string op = instruction.parameters[2];
                         List<string> list = instruction.parameters.ToList();
                         list.RemoveAt(2);
-                        list.Insert(0, OpToMlog(op));
+                        list.Insert(1, OpToMlog(op));
+                        instruction.parameters = list.ToArray();
                     }
                     else
                     {
@@ -432,9 +445,22 @@ namespace MlogCompiler
                         currentLabel++;
                         return lines;
                     case InstructionType.WhileLoop:
-                        break;
+                        
+                        return lines;
                     case InstructionType.If:
-                        break;
+                        if(parameters[1] == "===")
+                        {
+                            lines.Add($"op strictEqual __if {parameters[0]} {parameters[2]}");
+                            label = $"__if{currentLabel}";
+                            lines.Add($"jump {label} notEqual __if true");
+                        }
+                        else
+                        {
+                            label = $"__if{currentLabel}";
+                            lines.Add($"jump {label} {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}");
+                        }
+                        currentLabel++;
+                        return lines;
                     default:
                         lines.Add(instructions[instruction.instructionType] + " " + string.Join(' ', parameters));
                         return lines;
@@ -469,7 +495,8 @@ namespace MlogCompiler
                 case InstructionType.WhileLoop:
                     break;
                 case InstructionType.If:
-                    break;
+                    lines.Add("label " + label);
+                    return lines;
                 default:
                     return lines;
             }
@@ -480,9 +507,14 @@ namespace MlogCompiler
         static List<string> ResolveJumps(List<string> _code)
         {
             List<string> code = new List<string>(_code); // Shallow copy
+
+            if(code.Last(l => !l.StartsWith("#")).StartsWith("label")) // Resolve labels at the end
+                code.Add("end");
+
             Dictionary<string, int> jumps = new Dictionary<string, int>();
             int i = 0;
             int l = 0;
+
             while(i < code.Count)
             {
                 if(code[i].StartsWith("label "))
@@ -499,7 +531,7 @@ namespace MlogCompiler
             {
                 if(code[i].StartsWith("jump "))
                 {
-                    string last = code[i].Substring(5); // Cut off "goto "
+                    string last = code[i].Substring(5); // Cut off "jump "
                     string label = last;
                     if(label.Contains(' '))
                     {
@@ -546,6 +578,23 @@ namespace MlogCompiler
             "&" => "and",
             "flip" => "not",
             _ => op
+        };
+
+        /// <summary>
+        /// Returns the inverse operation
+        /// </summary>
+        /// <param name="op">The operation</param>
+        /// <returns>The inverse of the operation</returns>
+        /// <exception cref="CompilationException">The operation does not exist or is invalid for jumps</exception>
+        public static string InverseOp(string op) => op switch
+        {
+            "==" => "!=",
+            "!=" => "==",
+            "<" => ">=",
+            "<=" => ">",
+            ">" => "<=",
+            ">=" => "<",
+            _ => throw new CompilationException("This operator is not available for jump statements")
         };
     }
 }
