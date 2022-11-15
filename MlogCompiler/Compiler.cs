@@ -12,9 +12,7 @@ namespace MlogCompiler
     public enum CompilerOptions
     {
         None = 0,
-        UseStack = 1, // Required to use methods without WriteOutMethods
-        UseLocals = 2,
-        WriteOutMethods = 4
+        // UseBreak = 1 // Wether to enable break statements in loops
     }
 
     public static class Compiler
@@ -399,7 +397,7 @@ namespace MlogCompiler
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
             label = "";
-            if(parameters is null) return lines;
+            // if(parameters is null) return lines;
 
             // Mlog code for each instruction type
             Dictionary<InstructionType, string> instructions = new Dictionary<InstructionType, string>()
@@ -426,14 +424,14 @@ namespace MlogCompiler
                 {InstructionType.UnitBind, "ubind"},
                 {InstructionType.UnitControl, "ucontrol"},
                 {InstructionType.UnitRadar, "uradar"},
-                {InstructionType.UnitLocate, "ulocate"},
-                {InstructionType.Comment, "#"},
+                {InstructionType.UnitLocate, "ulocate"}
             };
 
             try
             {
                 switch(instruction.instructionType)
                 {
+#nullable disable
                     case InstructionType.Null:
                         return lines;
                     case InstructionType.CompilerComment:
@@ -463,9 +461,15 @@ namespace MlogCompiler
                         }
                         currentLabel++;
                         return lines;
-                    default:
-                        lines.Add(instructions[instruction.instructionType] + " " + string.Join(' ', parameters));
+                    case InstructionType.Comment:
+                        lines.AddRange(parameters[0].Split(Environment.NewLine).Select(l => "# " + l));
                         return lines;
+                    default:
+                        string str = instructions[instruction.instructionType];
+                        if(parameters is not null) str += " " + string.Join(' ', parameters);
+                        lines.Add(str);
+                        return lines;
+#nullable restore
                 }
             }
             catch(IndexOutOfRangeException)
@@ -485,23 +489,32 @@ namespace MlogCompiler
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
-            if(parameters is null) return lines;
+            // if(parameters is null) return lines;
 
-            switch(instruction.instructionType)
+            try
             {
-                case InstructionType.ForLoop:
-                    // bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
-                    lines.Add($"op add {parameters[0]} {parameters[0]} 1");
-                    lines.Add($"jump {label} lessThan {parameters[0]} {parameters[2]}");
-                    return lines;
-                case InstructionType.WhileLoop:
-                    lines.Add($"jump {label} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
-                    return lines;
-                case InstructionType.If:
-                    lines.Add("label " + label);
-                    return lines;
-                default:
-                    return lines;
+                switch(instruction.instructionType)
+                {
+#nullable disable
+                    case InstructionType.ForLoop:
+                        // bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
+                        lines.Add($"op add {parameters[0]} {parameters[0]} 1");
+                        lines.Add($"jump {label} lessThan {parameters[0]} {parameters[2]}");
+                        return lines;
+                    case InstructionType.WhileLoop:
+                        lines.Add($"jump {label} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
+                        return lines;
+                    case InstructionType.If:
+                        lines.Add("label " + label);
+                        return lines;
+                    default:
+                        return lines;
+#nullable restore
+                }
+            }
+            catch(IndexOutOfRangeException)
+            {
+                throw new CompilationException("Incorrect number of parameters");
             }
 
             throw new CompilationException("Instruction is not implemented: " + instruction.instructionType);
@@ -511,7 +524,7 @@ namespace MlogCompiler
         {
             List<string> code = new List<string>(_code); // Shallow copy
 
-            if(code.Last(l => !l.StartsWith("#")).StartsWith("label")) // Resolve labels at the end
+            if(code.Any(l => !l.StartsWith("#")) && code.Last(l => !l.StartsWith("#")).StartsWith("label")) // Resolve labels at the end
                 code.Add("end");
 
             Dictionary<string, int> jumps = new Dictionary<string, int>();
