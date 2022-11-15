@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static MlogCompiler.Instruction;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace MlogCompiler
 {
