@@ -1,6 +1,10 @@
 # Mindustry Logic Compiler
 Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLMlog), a high-level programming language that compiles to Mindustry Logic. It tries to make Mindustry Logic easier to write.
 ## Syntax
+### General
+In HLMlog as well as in Mlog, variables are dynamically typed, meaning the data type or the variable itself do not need to be declared. Every variable's default value is null.
+
+In HLMlog, every line needs to be terminated by a semicolon (`;`). This includes comments.
 ### Comments
 A comment is opened by `//` and closed by a semicolon. Compiler comments are opened with `///` and don't show up in the compiled code.
 ```
@@ -80,8 +84,7 @@ op sub i i 1
 jump 1 greaterThan i 0
 ```
 ### for loop
-A for loop increments a variable every time it runs and exits once it reaches an exit value. The loop starts at the first number
-and exits if the second number is reached after incrementing, meaning the second number is exclusive.
+A for loop increments a variable every time after it runs its scope and exits once it reaches an exit value. The syntax is `for(<iterator>, <start>, <end>)`. The loop starts at `<start>` and exits if the iterator variable reaches `<end>` after incrementing, which makes it exclusive.
 ```
 j = 0;
 for(i, 0, 10)
@@ -98,7 +101,7 @@ jump 2 lessThan i 10
 ```
 For loops are post-test loops.
 ### Operators
-Operators are used to change the value of variables. The syntax is varies for each operator, you can find it in the table below. HLMlog also uses slightly different operators from Mlog:
+Operators are used to change the value of variables. The syntax is varies for each operator, you can find it in the table below. HLMlog also uses slightly different operators from Mlog.
 | Operator                    | Mlog (Editor) | Mlog (Export) | HLMlog | Syntax                  |
 |:---------------------------:|:-------------:|:-------------:|:------:|:-----------------------:|
 | Addition                    | \+            | add           | \+     | `result = a + b;`       |
@@ -140,3 +143,5 @@ Operators are used to change the value of variables. The syntax is varies for ea
 | Arc sine                    | asin          | asin          |asin    | `result = asin(a);`     |
 | Arc cosine                  | acos          | acos          |acos    | `result = acos(a);`     |
 | Arc tangent                 | atan          | atan          |atan    | `result = atan(a);`     |
+
+Only one operator can be used per line. Short forms like `result += a;` currently do not work.
