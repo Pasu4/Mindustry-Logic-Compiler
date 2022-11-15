@@ -2,7 +2,7 @@
 Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLMlog), a high-level programming language that compiles to Mindustry Logic. It tries to make Mindustry Logic easier to write.
 ## Syntax
 ### Comments
-A comment is opened by ```//``` and closed by a semicolon. Compiler comments are opened with ```///``` and don't show up in the compiled code.
+A comment is opened by `//` and closed by a semicolon. Compiler comments are opened with `///` and don't show up in the compiled code.
 ```
 // This is a comment;
 //
@@ -23,7 +23,7 @@ compiles to
 end
 ```
 ### jump / label keyword
-The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an ```end``` statement is appended.
+The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an `end` statement is appended.
 ```
 i = 0;
 // Jump without condition;
@@ -49,7 +49,7 @@ set i 2
 end
 ```
 ### if statement
-An if statement checks a condition and executes its body if the condition is true. If the scope ends at the end of the program, it appends an ```end``` statement.
+An if statement checks a condition and executes its body if the condition is true. If the scope ends at the end of the program, it appends an `end` statement.
 ```
 i = Read(cell1, 0);
 if(i == 0)
@@ -98,45 +98,45 @@ jump 2 lessThan i 10
 ```
 For loops are post-test loops.
 ### Operators
-HLMlog uses slightly different operators from Mlog:
-| Mlog (Editor) | Mlog (Export) | HLMlog |
-|:-------------:|:-------------:|:------:|
-| \+            | add           | \+     |
-| \-            | sub           | \-     |
-| \*            | mul           | \*     |
-| /             | div           | /      |
-| //            | idiv          | //     |
-| %             | mod           | %      |
-| ^             | pow           | ^      |
-| ==            | equal         | ==     |
-| not           | notEqual      |!=      |
-| and           | land          | &&     |
-| <             | lessThan      | <      |
-| <=            | lessThanEq    | <=     |
-| \>            | greaterThan   | \>     |
-| \>=           | greaterThanEq | \>=    |
-| ===           | strictEqual   | ===    |
-| <<            | shl           | <<     |
-| \>\>          | shr           | \>\>   |
-| or            | or            | \|     |
-| b-and         | and           | &      |
-| xor           | xor           |xor     |
-| flip          | not           |flip    |
-| max           | max           |max     |
-| min           | min           |min     |
-| angle         | angle         |angle   |
-| len           | len           |len     |
-| noise         | noise         |noise   |
-| abs           | abs           |abs     |
-| log           | log           |log     |
-| log10         | log10         |log10   |
-| floor         | floor         |floor   |
-| ceil          | ceil          |ceil    |
-| sqrt          | sqrt          |sqrt    |
-| rand          | rand          |rand    |
-| sin           | sin           |sin     |
-| cos           | cos           |cos     |
-| tan           | tan           |tan     |
-| asin          | asin          |asin    |
-| acos          | acos          |acos    |
-| atan          | atan          |atan    |
+Operators are used to change the value of variables. The syntax is varies for each operator, you can find it in the table below. HLMlog also uses slightly different operators from Mlog:
+| Operator                    | Mlog (Editor) | Mlog (Export) | HLMlog | Syntax                  |
+|:---------------------------:|:-------------:|:-------------:|:------:|:-----------------------:|
+| Addition                    | \+            | add           | \+     | `result = a + b;`       |
+| Subtraction                 | \-            | sub           | \-     | `result = a - b;`       |
+| Multiplication              | \*            | mul           | \*     | `result = a * b;`       |
+| Division                    | /             | div           | /      | `result = a / b;`       |
+| Integer division            | //            | idiv          | //     | `result = a // b;`      |
+| Modulo                      | %             | mod           | %      | `result = a % b;`       |
+| Exponentiation              | ^             | pow           | ^      | `result = a ^ b;`       |
+| Equal                       | ==            | equal         | ==     | `result = a == b;`      |
+| Not equal                   | not           | notEqual      |!=      | `result = a != b;`      |
+| Logical AND                 | and           | land          | &&     | `result = a && b;`      |
+| Less than                   | <             | lessThan      | <      | `result = a < b;`       |
+| Less than or equal          | <=            | lessThanEq    | <=     | `result = a <= b;`      |
+| Greater than                | \>            | greaterThan   | \>     | `result = a > b;`       |
+| Greater than or equal       | \>=           | greaterThanEq | \>=    | `result = a >= b;`      |
+| Strict equality             | ===           | strictEqual   | ===    | `result = a === b;`     |
+| Bit-shift left              | <<            | shl           | <<     | `result = a << b;`      |
+| Bit-shift right             | \>\>          | shr           | \>\>   | `result = a >> b;`      |
+| Bitwise OR                  | or            | or            | \|     | `result = a \| b;`      |
+| Bitwise AND                 | b-and         | and           | &      | `result = a & b;`       |
+| Bitwise XOR                 | xor           | xor           |xor     | `result = a xor b;`     |
+| Bitwise flip                | flip          | not           |flip    | `result = flip(a);`     |
+| Maximum                     | max           | max           |max     | `result = max(a, b);`   |
+| Minimum                     | min           | min           |min     | `result = min(a, b);`   |
+| Angle of vector             | angle         | angle         |angle   | `result = angle(a, b);` |
+| Length of vector            | len           | len           |len     | `result = len(a, b);`   |
+| 2D simplex noise            | noise         | noise         |noise   | `result = noise(a, b);` |
+| Absolute value              | abs           | abs           |abs     | `result = abs(a);`      |
+| Natural logarithm           | log           | log           |log     | `result = log(a);`      |
+| Base 10 logarithm           | log10         | log10         |log10   | `result = log10(a);`    |
+| Floor function              | floor         | floor         |floor   | `result = floor(a);`    |
+| Ceiling function            | ceil          | ceil          |ceil    | `result = ceil(a);`     |
+| Square root                 | sqrt          | sqrt          |sqrt    | `result = sqrt(a);`     |
+| Random decimal \[0, value\] | rand          | rand          |rand    | `result = rand(a);`     |
+| Sine                        | sin           | sin           |sin     | `result = sin(a);`      |
+| Cosine                      | cos           | cos           |cos     | `result = cos(a);`      |
+| Tangent                     | tan           | tan           |tan     | `result = tan(a);`      |
+| Arc sine                    | asin          | asin          |asin    | `result = asin(a);`     |
+| Arc cosine                  | acos          | acos          |acos    | `result = acos(a);`     |
+| Arc tangent                 | atan          | atan          |atan    | `result = atan(a);`     |
