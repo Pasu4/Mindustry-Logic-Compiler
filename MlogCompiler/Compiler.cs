@@ -445,7 +445,9 @@ namespace MlogCompiler
                         currentLabel++;
                         return lines;
                     case InstructionType.WhileLoop:
-                        
+                        label = $"__while{currentLabel}";
+                        lines.Add("label " + label);
+                        currentLabel++;
                         return lines;
                     case InstructionType.If:
                         if(parameters[1] == "===")
@@ -493,7 +495,8 @@ namespace MlogCompiler
                     lines.Add($"jump {label} lessThan {parameters[0]} {parameters[2]}");
                     return lines;
                 case InstructionType.WhileLoop:
-                    break;
+                    lines.Add($"jump {label} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
+                    return lines;
                 case InstructionType.If:
                     lines.Add("label " + label);
                     return lines;
