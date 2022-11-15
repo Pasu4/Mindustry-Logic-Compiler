@@ -1,5 +1,5 @@
 # Mindustry Logic Compiler
-Mindustry Logic Compiler is a compiler for a high-level programming language that compiles to Mindustry Logic.
+Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLMlog), a high-level programming language that compiles to Mindustry Logic. It tries to make Mindustry Logic easier to write.
 ## Syntax
 ### Comments
 A comment is opened by ```//``` and closed by a semicolon. Compiler comments are opened with ```///``` and don't show up in the compiled code.
@@ -15,7 +15,7 @@ end;
 ```
 compiles to
 ```
-#  This is a comment
+# This is a comment
 # 
 # This is a
 # multiline
@@ -39,17 +39,17 @@ label lbl2;
 compiles to
 ```
 set i 0
-#  Jump without condition
+# Jump without condition
 jump 3 always
 set i 1
-#  Jump with condition
+# Jump with condition
 jump 5 equal i 1
 set i 2
-#  Appended end statement
+# Appended end statement
 end
 ```
 ### if statement
-An if statement checks a condition and executes its body if the condition is true.
+An if statement checks a condition and executes its body if the condition is true. If the scope ends at the end of the program, it appends an ```end``` statement.
 ```
 i = Read(cell1, 0);
 if(i == 0)
@@ -66,6 +66,19 @@ end
 ```
 ### while loop
 A while loop executes its scope until the exit condition is met, after which it exits. It is a post-test loop. To make it a pre-test loop, put it in an if statement.
+```
+i = 10;
+while(i > 0)
+{
+    i = i - 1;
+}
+```
+compiles to
+```
+set i 10
+op sub i i 1
+jump 1 greaterThan i 0
+```
 ### for loop
 A for loop increments a variable every time it runs and exits once it reaches an exit value. The loop starts at the first number
 and exits if the second number is reached after incrementing, meaning the second number is exclusive.
@@ -84,3 +97,46 @@ op add j j i
 jump 2 lessThan i 10
 ```
 For loops are post-test loops.
+### Operators
+HLMlog uses slightly different operators from Mlog:
+| Mlog (Editor) | Mlog (Export) | HLMlog |
+|:-------------:|:-------------:|:------:|
+| \+            | add           | \+     |
+| \-            | sub           | \-     |
+| \*            | mul           | \*     |
+| /             | div           | /      |
+| //            | idiv          | //     |
+| %             | mod           | %      |
+| ^             | pow           | ^      |
+| ==            | equal         | ==     |
+| not           | notEqual      |!=      |
+| and           | land          | &&     |
+| <             | lessThan      | <      |
+| <=            | lessThanEq    | <=     |
+| \>            | greaterThan   | \>     |
+| \>=           | greaterThanEq | \>=    |
+| ===           | strictEqual   | ===    |
+| <<            | shl           | <<     |
+| \>\>          | shr           | \>\>   |
+| or            | or            | \|     |
+| b-and         | and           | &      |
+| xor           | xor           |xor     |
+| flip          | not           |flip    |
+| max           | max           |max     |
+| min           | min           |min     |
+| angle         | angle         |angle   |
+| len           | len           |len     |
+| noise         | noise         |noise   |
+| abs           | abs           |abs     |
+| log           | log           |log     |
+| log10         | log10         |log10   |
+| floor         | floor         |floor   |
+| ceil          | ceil          |ceil    |
+| sqrt          | sqrt          |sqrt    |
+| rand          | rand          |rand    |
+| sin           | sin           |sin     |
+| cos           | cos           |cos     |
+| tan           | tan           |tan     |
+| asin          | asin          |asin    |
+| acos          | acos          |acos    |
+| atan          | atan          |atan    |
