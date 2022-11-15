@@ -1,8 +1,29 @@
 # Mindustry Logic Compiler
 Mindustry Logic Compiler is a compiler for a high-level programming language that compiles to Mindustry Logic.
 ## Syntax
+### Comments
+A comment is opened by ```//``` and closed by a semicolon. Compiler comments are opened with ```///``` and don't show up in the compiled code.
+```
+// This is a comment;
+//
+This is a
+multiline
+comment
+;
+/// This comment does not show up in the code;
+end;
+```
+compiles to
+```
+#  This is a comment
+# 
+# This is a
+# multiline
+# comment
+end
+```
 ### jump / label keyword
-The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an ```end``` keyword is appended.
+The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an ```end``` statement is appended.
 ```
 i = 0;
 // Jump without condition;
