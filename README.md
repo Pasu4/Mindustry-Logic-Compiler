@@ -1,10 +1,14 @@
 # Mindustry Logic Compiler
 Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLmlog), a high-level programming language that compiles to Mindustry Logic. It aims to make Mindustry Logic easier to write and more human-readable.
+
 ## Syntax
+
 ### General
 In HLmlog as well as in mlog, variables are dynamically typed, meaning the data type or the variable itself do not need to be declared. Every variable's default value is null.
 
 Extra spaces and tabs are ignored. `result = a;` is interpreted the same as <code>result&nbsp;&nbsp;&nbsp;&nbsp; = a;</code>.
+
+Variables should not start with two underscores, since this is the naming convention used by the compiler for flow control.
 
 Every line needs to be terminated by a semicolon (`;`). This includes comments.
 ### Comments
@@ -28,6 +32,7 @@ compiles to
 # comment
 end
 ```
+
 ### jump / label keyword
 The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an `end` statement is appended.
 ```
@@ -54,6 +59,7 @@ set i 2
 # Appended end statement
 end
 ```
+
 ### if statement
 An if statement checks a condition and executes its body if the condition is true. If the scope ends at the end of the program, it appends an `end` statement.
 ```
@@ -70,6 +76,7 @@ jump 3 notEqual i 0
 write 1 cell1 0
 end
 ```
+
 ### while / dowhile loop
 A while loop executes its scope until the exit condition is met, after which it exits. It is a pre-test loop. To make it a post-test loop, write `dowhile` instead of `while`.
 ```
@@ -101,6 +108,7 @@ set i 10
 op sub i i 1
 jump 1 greaterThan i 0
 ```
+
 ### for / dofor loop
 A for loop increments a variable every time after it runs its scope and exits once it reaches an exit value. The syntax is `for(<iterator>, <start>, <end>)`. The loop starts at `<start>` and exits if the iterator variable reaches `<end>` after incrementing, which makes it exclusive. It is a pre-test loop. To make it a post-test loop, write `dofor` instead of `for`.
 ```
@@ -136,6 +144,7 @@ op add j j i
 op add i i 1
 jump 2 lessThan i 10
 ```
+
 ### Operators
 Operators are used to change the value of variables. The syntax varies for each operator, you can find it in the table below. HLmlog also uses slightly different operators from mlog.
 | Operator                    | mlog (Editor) | mlog (Export) | HLmlog | Syntax                  |
@@ -181,9 +190,21 @@ Operators are used to change the value of variables. The syntax varies for each 
 | Arc tangent                 | atan          | atan          |atan    | `result = atan(a);`     |
 
 Only one operator can be used per line, writing ´result = a + b + c´ is not possible. Short forms like `result += a;` currently do not work. Operators whithout brackets (eg. \+ or \-) and the equal sign for assignment (`=`) must be separated with spaces from their operand(s), writing `result=10^3` is not currently possible.
+
+### sub / return statements
+The `sub` statement works like a `jump` statement, but also writes a return point to memory. A `return` statement returns to the last `sub` statement that was called. The `sub` statement thereby acts like a method call. By default, `sub` statements cannot be nested. To activate this, use the compiler option `UseStack`.
+
+## Compiler Options
+Compiler options tell the compiler how to process your code. To activate a compiler option, add a `#` followed by the name of the compiler option.
+
+### UseStack
+Makes use of a data cell to store references to code lines. This used to nest multiple `sub` statements.
+
+*Requires:* A data cell with the name cell1 connected to the processor
+
 ## Coding Examples
 ### Coordinated fire
-This code checks if the player is controlling a linked turret, and if so, makes all turres mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. When the player leaves the turret, the processor releases control over the turrets. Should be used at least on a medium logic processor if you want to control more than four turrets.
+This code checks if the player is controlling a linked turret, and if so, makes all turrets mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. When the player leaves the turret, the processor releases control over the turrets. Should be used at least on a medium logic processor if you want to control more than four turrets.
 ```
 for(i, 0, @links)
 {
@@ -235,4 +256,184 @@ op add i i 1
 jump 1 lessThan i @links
 # Unregister player if not found for two loops
 op sub found found 1
+```
+### Ore mapper
+This script assigns a unit to scan the entire map for resources and map them to a display. It automatically takes screen dimensions, map height and map width into account.
+```
+// Constants;
+scoutUnit = @flare;
+stepLength = 10;
+
+// Initialization;
+UnitBind(scoutUnit);
+x = 0;
+y = 0;
+Draw(clear, 0, 0, 0);
+
+// Measurements;
+screen = Sensor(display1, @type);
+screenSize = 80;
+if(screen == @large-logic-display) { screenSize = 176; }
+scaleX = screenSize / @mapw;
+scaleY = screenSize / @maph;
+scale = max(scaleX, scaleY);
+
+// Iterate through all positions on the map;
+dowhile(true == true)
+{
+    // Direction to scan the y coordinate;
+    up = true;
+    dowhile(x < @mapw)
+    {
+        dowhile(y < @maph)
+        {
+            sub main;
+
+            y = y + stepLength;
+        }
+        x = x + stepLength;
+        jump stop if x > @mapw;
+        // Change direction to avoid extra travel time;
+        y = @maph;
+        dowhile(y > 0)
+        {
+            sub main;
+
+            y = y - stepLength;
+        }
+        x = x + stepLength;
+        y = 0;
+    }
+}
+
+label stop;
+stop;
+
+// Bind new unit on death;
+label dead;
+    UnitBind(scoutUnit);
+    jump stop if @unit == null;
+jump notDead;
+
+// Main loop;
+label main;
+    UnitControl(move, x, y);
+    arrived = false;
+    // Wait until unit has arrived;
+    while(arrived != true)
+    {
+        UnitControl(within, x, y, 2, arrived);
+        dead = Sensor(@unit, @dead);
+        jump dead if dead == true;
+        label notDead;
+    }
+    // Check for all resources;
+    // core, true is a formality for ulocate in mlog;
+    UnitLocate(ore, core, true, @copper, outx, outy, found);
+    if(found == true)
+    { outx = outx * scale; outy = outy * scale; Draw(image, outx, outy, @copper, 8); }
+    UnitLocate(ore, core, true, @lead, outx, outy, found);
+    if(found == true)
+    { outx = outx * scale; outy = outy * scale; Draw(image, outx, outy, @lead, 8); }
+    UnitLocate(ore, core, true, @scrap, outx, outy, found);
+    if(found == true)
+    { outx = outx * scale; outy = outy * scale; Draw(image, outx, outy, @scrap, 8); }
+    UnitLocate(ore, core, true, @coal, outx, outy, found);
+    if(found == true)
+    { outx = outx * scale; outy = outy * scale; Draw(image, outx, outy, @coal, 8); }
+    UnitLocate(ore, core, true, @titanium, outx, outy, found);
+    if(found == true)
+    { outx = outx * scale; outy = outy * scale; Draw(image, outx, outy, @titanium, 8); }
+    UnitLocate(ore, core, true, @thorium, outx, outy, found);
+    if(found == true)
+    { outx = outx * scale; outy = outy * scale; Draw(image, outx, outy, @thorium, 8); }
+
+    display1.DrawFlush();
+return;
+```
+In mlog code:
+```
+# Constants
+set scoutUnit @flare
+set stepLength 10
+# Initialization
+ubind scoutUnit
+set x 0
+set y 0
+draw clear 0 0 0
+# Measurements
+sensor screen display1 @type
+set screenSize 80
+jump 10 notEqual screen @large-logic-display
+set screenSize 176
+op div scaleX screenSize @mapw
+op div scaleY screenSize @maph
+op max scale scaleX scaleY
+# Iterate through all positions on the map
+# Direction to scan the y coordinate
+set up true
+op add __retAddr @counter 1
+jump 33
+op add y y stepLength
+jump 14 lessThan y @maph
+op add x x stepLength
+jump 29 greaterThan x @mapw
+# Change direction to avoid extra travel time
+set y @maph
+op add __retAddr @counter 1
+jump 33
+op sub y y stepLength
+jump 21 greaterThan y 0
+op add x x stepLength
+set y 0
+jump 14 lessThan x @mapw
+jump 13 equal true true
+stop
+# Bind new unit on death
+ubind scoutUnit
+jump 29 equal @unit null
+jump 39 always
+# Main loop
+ucontrol move x y
+set arrived false
+# Wait until unit has arrived
+jump 40 equal arrived true
+ucontrol within x y 2 arrived
+sensor dead @unit @dead
+jump 30 equal dead true
+jump 35 notEqual arrived true
+# Check for all resources
+# core, true is a formality for ulocate in mlog
+ulocate ore core true @copper outx outy found
+jump 45 notEqual found true
+op mul outx outx scale
+op mul outy outy scale
+draw image outx outy @copper 8
+ulocate ore core true @lead outx outy found
+jump 50 notEqual found true
+op mul outx outx scale
+op mul outy outy scale
+draw image outx outy @lead 8
+ulocate ore core true @scrap outx outy found
+jump 55 notEqual found true
+op mul outx outx scale
+op mul outy outy scale
+draw image outx outy @scrap 8
+ulocate ore core true @coal outx outy found
+jump 60 notEqual found true
+op mul outx outx scale
+op mul outy outy scale
+draw image outx outy @coal 8
+ulocate ore core true @titanium outx outy found
+jump 65 notEqual found true
+op mul outx outx scale
+op mul outy outy scale
+draw image outx outy @titanium 8
+ulocate ore core true @thorium outx outy found
+jump 70 notEqual found true
+op mul outx outx scale
+op mul outy outy scale
+draw image outx outy @thorium 8
+drawflush display1
+set @counter __retAddr
 ```
