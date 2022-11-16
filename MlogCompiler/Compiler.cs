@@ -168,9 +168,9 @@ namespace MlogCompiler
             if(string.IsNullOrEmpty(line)) return new Instruction();
 
             Instruction instruction = new Instruction();
-            Regex firstWordRx = new Regex(@"^(\/\/\/?|\w.*?\b)"); // Find command or comment
-            Regex assignmentRx = new Regex(@"^(\w[\w\d]*?) = (\w.*?\b(?=\())"); // Method assignment
-            Regex callRx = new Regex(@"^(\w[\w\d]*?)\.(\w.*?\b(?=\())"); // Match method call with .Method()
+            Regex firstWordRx = new Regex(@"^(\/\/\/?|@?\w.*?\b)"); // Find command or comment
+            Regex assignmentRx = new Regex(@"^(\w[\w\d-]*?) = (\w.*?\b(?=\())"); // Method assignment
+            Regex callRx = new Regex(@"^(\w[\w\d-]*?)\.(\w.*?\b(?=\())"); // Match method call with .Method()
 
             Match match = firstWordRx.Match(line);
             Match assignmentMatch = assignmentRx.Match(line);
@@ -472,7 +472,8 @@ namespace MlogCompiler
                         currentLabel++;
                         return lines;
                     case InstructionType.ForLoop:
-                        lines.Add($"set {parameters[0]} {parameters[1]}\n");
+                        if(parameters[0] != parameters[1]) // Optimization
+                            lines.Add($"set {parameters[0]} {parameters[1]}\n");
                         labels = new string[] { $"__for{currentLabel}", $"__break{currentLabel}" };
                         lines.Add($"jump {labels[1]} greaterThanEq {parameters[0]} {parameters[2]}"); // Pre-test
                         lines.Add("label " + labels[0]);
