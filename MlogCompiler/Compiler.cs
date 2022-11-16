@@ -107,27 +107,46 @@ namespace MlogCompiler
         /// <returns>A list of all scopes and single instructions</returns>
         public static List<CodeLine> GetCodeLines(string code)
         {
+            // TODO fix bug here
             int index = 0; // So i can be used outside the loop
+            int depth = 0; // Count of scopes
+            bool quoted = false;
             List<CodeLine> lines = new List<CodeLine>();
             for(; index < code.Length; index++)
             {
-                // Also enters empty strings into the list, omits the semicolon
-                if(code[index] == ';')
+                // Also enters empty strings into the list, omits the semicolon, only in the current scope
+                if(code[index] == ';' && depth == 0 && !quoted)
                 {
                     lines.Add(new CodeLine(code.Substring(0, index)));
                     code = code.Substring(index + 1);
                     index = 0;
                     continue;
                 }
-                // Adds the entire scope to the list
-                if(code[index] == '{')
+                // Start tracking the scope
+                if(code[index] == '{' && !quoted)
                 {
-                    int lastBracket = code.LastIndexOf('}');
+                    /*int lastBracket = code.LastIndexOf('}');
                     lines.Add(new CodeLine(code.Substring(0, lastBracket + 1), true)); // Include last bracket
                     code = code.Substring(lastBracket + 1);
                     index = 0;
-                    continue;
+                    continue;*/
+                    depth++;
                 }
+                // Scope closing
+                if(code[index] == '}' && !quoted)
+                {
+                    // Only close scope if the brackets match
+                    depth--;
+                    if(depth == 0) // Scope was closed
+                    {
+                        lines.Add(new CodeLine(code.Substring(0, index + 1), true));
+                        code = code.Substring(index + 1);
+                        index = 0;
+                        continue;
+                    }
+                }
+                // Quote / Unquote (Finally a use for XOR)
+                quoted ^= code[index] == '"';
             }
 
             // Remove leading and trailing spaces
