@@ -1,10 +1,12 @@
 # Mindustry Logic Compiler
-Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLMlog), a high-level programming language that compiles to Mindustry Logic. It aims to make Mindustry Logic easier to write and more human-readable.
+Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLmlog), a high-level programming language that compiles to Mindustry Logic. It aims to make Mindustry Logic easier to write and more human-readable.
 ## Syntax
 ### General
-In HLMlog as well as in Mlog, variables are dynamically typed, meaning the data type or the variable itself do not need to be declared. Every variable's default value is null.
+In HLmlog as well as in mlog, variables are dynamically typed, meaning the data type or the variable itself do not need to be declared. Every variable's default value is null.
 
-In HLMlog, every line needs to be terminated by a semicolon (`;`). This includes comments.
+Extra spaces and tabs are ignored. `result = a;` is interpreted the same as <code>result&nbsp;&nbsp;&nbsp;&nbsp; = a;</code>.
+
+Every line needs to be terminated by a semicolon (`;`). This includes comments.
 ### Comments
 A comment is opened by `//` and closed by a semicolon. Compiler comments are opened with `///` and don't show up in the compiled code.
 ```
@@ -144,7 +146,7 @@ Operators are used to change the value of variables. The syntax is varies for ea
 | Arc cosine                  | acos          | acos          |acos    | `result = acos(a);`     |
 | Arc tangent                 | atan          | atan          |atan    | `result = atan(a);`     |
 
-Only one operator can be used per line. Short forms like `result += a;` currently do not work.
+Only one operator can be used per line, writing ´result = a + b + c´ is not possible. Short forms like `result += a;` currently do not work. Operators whithout brackets (eg. \+ or \-) and the equal sign for assignment (`=`) must be separated with spaces from their operand(s), writing `result=10^3` is not currently possible.
 ## Coding Examples
 ### Coordinated fire
 ```
@@ -176,7 +178,7 @@ for(i, 0, @links)
 // Unregister player if not found for two loops;
 found = found - 1;
 ```
-This code checks if the player is controlling a linked turret, and if so, makes all turres mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. The compiled code looks like this:
+This code checks if the player is controlling a linked turret, and if so, makes all turres mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. The compiled code in mlog looks like this:
 ```
 set i 0
 # Iterate through every building
