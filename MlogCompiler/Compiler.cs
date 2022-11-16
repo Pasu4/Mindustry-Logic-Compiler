@@ -11,7 +11,7 @@ namespace MlogCompiler
     public enum CompilerOptions
     {
         None = 0,
-        // UseBreak = 1 // Wether to enable break statements in loops
+        UseStack = 1
     }
 
     public static class Compiler
@@ -31,6 +31,13 @@ namespace MlogCompiler
         /// <returns>The new syntax tree</returns>
         public static SyntaxTree CompileTree(string code, CompilerOptions options = CompilerOptions.None)
         {
+            // Remove compiler options
+            code = string
+                .Join(Environment.NewLine, code
+                    .Split(Environment.NewLine)
+                    .Where(l => !l.StartsWith('#'))
+                    .ToArray());
+
             SyntaxTree tree = new SyntaxTree(CompileBranch(new CodeLine("{" + code + "}", true), null, options)); // Treat all code as being in a scope
 
             return tree;
@@ -76,26 +83,26 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="tree">The tree</param>
         /// <returns>Mindustry Logic code</returns>
-        public static List<string> ConvertTree(SyntaxTree tree)
+        public static List<string> ConvertTree(SyntaxTree tree, CompilerOptions options)
         {
-            List<string> result = ConvertBranch(tree.root);
+            List<string> result = ConvertBranch(tree.root, options);
             return ResolveJumps(result);
         }
 
-        public static List<string> ConvertBranch(SyntaxBranch branch)
+        public static List<string> ConvertBranch(SyntaxBranch branch, CompilerOptions options)
         {
             List<string> lines = new List<string>();
 
             // Add opening code
-            lines.AddRange(OpeningCode(branch.instruction, out string[]? labels));
+            lines.AddRange(OpeningCode(branch.instruction, out string[]? labels, options));
 
             // Add code for all children
             if(branch.children != null)
                 foreach(SyntaxBranch child in branch.children)
-                    lines.AddRange(ConvertBranch(child));
+                    lines.AddRange(ConvertBranch(child, options));
 
             // Add closing code
-            lines.AddRange(ClosingCode(branch.instruction, labels));
+            lines.AddRange(ClosingCode(branch.instruction, labels, options));
 
             return lines;
         }
@@ -219,7 +226,7 @@ namespace MlogCompiler
                 case "drawflush":
                     instruction.instructionType = InstructionType.DrawFlush;
                     break;
-                case "printFlush":
+                case "printflush":
                     instruction.instructionType = InstructionType.PrintFlush;
                     break;
                 case "getlink":
@@ -422,7 +429,7 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>
-        static List<string> OpeningCode(Instruction instruction, out string[]? labels)
+        static List<string> OpeningCode(Instruction instruction, out string[]? labels, CompilerOptions options)
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
@@ -507,14 +514,31 @@ namespace MlogCompiler
                         currentLabel++;
                         return lines;
                     case InstructionType.Sub:
-                        lines.Add("op add __retAddr @counter 1");
-                        goto default; // Rest is normal jump statement
-                    case InstructionType.Return:
-                        lines.Add("set @counter __retAddr");
+                        if((options & CompilerOptions.UseStack) != 0)
+                        {
+                            lines.Add("op add __retAddr @counter 3");
+                            lines.Add("write __retAddr cell1 __stack");
+                            lines.Add("op add __stack __stack 1");
+                        }
+                        else
+                            lines.Add("op add __retAddr @counter 1");
+                        lines.Add($"jump {parameters[0]} always");
                         return lines;
+
+                    case InstructionType.Return:
+                        if((options & CompilerOptions.UseStack) != 0)
+                        {
+                            lines.Add("op sub __stack __stack 1");
+                            lines.Add("read @counter cell1 __stack");
+                        }
+                        else
+                            lines.Add("set @counter __retAddr");
+                        return lines;
+
                     case InstructionType.Comment:
                         lines.AddRange(parameters[0].Split(Environment.NewLine).Select(l => "# " + l.Trim()));
                         return lines;
+
                     default:
                         string str = instructions[instruction.instructionType];
                         if(parameters is not null) str += " " + string.Join(' ', parameters);
@@ -536,7 +560,7 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>
-        static List<string> ClosingCode(Instruction instruction, string[]? labels)
+        static List<string> ClosingCode(Instruction instruction, string[]? labels, CompilerOptions options)
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
@@ -672,5 +696,22 @@ namespace MlogCompiler
             ">=" => "<",
             _ => throw new CompilationException("This operator is not available for jump statements")
         };
+
+        public static CompilerOptions GetCompilerOptions(string code)
+        {
+            try
+            {
+                return code
+                    .Split(Environment.NewLine)
+                    .Where(s => s.StartsWith('#'))
+                    .Select(s => (CompilerOptions) Enum.Parse(typeof(CompilerOptions), s.Substring(1)))
+                    .ToArray()
+                    .Aggregate(CompilerOptions.None, (combined, next) => combined |= next, o => o);
+            }
+            catch(ArgumentException)
+            {
+                throw new CompilationException("Could not resolve compiler options");
+            }
+        }
     }
 }

@@ -38,8 +38,9 @@ namespace MlogCompiler
             success = false;
             try
             {
-                SyntaxTree tree = Compiler.CompileTree(textBox1.Text, CompilerOptions.None);
-                List<string> lines = Compiler.ConvertTree(tree);
+                CompilerOptions options = Compiler.GetCompilerOptions(textBox1.Text);
+                SyntaxTree tree = Compiler.CompileTree(textBox1.Text, options);
+                List<string> lines = Compiler.ConvertTree(tree, options);
                 success = true;
                 return string.Join(Environment.NewLine, lines);
             }
