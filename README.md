@@ -33,7 +33,7 @@ compiles to
 end
 ```
 
-### jump / label keyword
+### jump / label statement
 The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an `end` statement is appended.
 ```
 i = 0;
