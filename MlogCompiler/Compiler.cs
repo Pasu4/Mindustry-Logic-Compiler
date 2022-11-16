@@ -107,7 +107,6 @@ namespace MlogCompiler
         /// <returns>A list of all scopes and single instructions</returns>
         public static List<CodeLine> GetCodeLines(string code)
         {
-            // TODO fix bug here
             int index = 0; // So i can be used outside the loop
             int depth = 0; // Count of scopes
             bool quoted = false;
