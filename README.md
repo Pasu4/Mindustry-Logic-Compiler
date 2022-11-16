@@ -33,7 +33,7 @@ compiles to
 end
 ```
 
-### jump / label keyword
+### jump / label statement
 The jump keyword jumps to a specified label. A condition can optionally be specified. If a label is at the end of the program, an `end` statement is appended.
 ```
 i = 0;
@@ -79,6 +79,8 @@ end
 
 ### while / dowhile loop
 A while loop executes its scope until the exit condition is met, after which it exits. It is a pre-test loop. To make it a post-test loop, write `dowhile` instead of `while`.
+
+#### Example
 ```
 i = 10;
 while(i > 0)
@@ -111,6 +113,8 @@ jump 1 greaterThan i 0
 
 ### for / dofor loop
 A for loop increments a variable every time after it runs its scope and exits once it reaches an exit value. The syntax is `for(<iterator>, <start>, <end>)`. The loop starts at `<start>` and exits if the iterator variable reaches `<end>` after incrementing, which makes it exclusive. It is a pre-test loop. To make it a post-test loop, write `dofor` instead of `for`.
+
+#### Example
 ```
 j = 0;
 for(i, 0, 10)
@@ -209,7 +213,61 @@ Makes use of a data cell to store references to code lines. This used to nest mu
 #### Requires
 - A data cell with the name cell1 connected to the processor
 #### Performance
-Adds two lines to every `sub` statement and two lines to every `return` statement.
+Adds two lines to every `sub` statement and one line to every `return` statement.
+#### Example
+This code checks if the processor is set up correctly to support the use of nested subs and prints "Setup is working" if the setup is working.
+```
+#UseStack
+sub lbl1;
+lbl0 = true;
+// Test if setup is correct;
+result = lbl0 && lbl1;
+result = result && lbl2;
+if(result == true)
+{
+	Print("Setup is working");
+	message1.PrintFlush();
+}
+end;
+
+// Check if depth 1 is reached;
+label lbl1;
+sub lbl2;
+lbl1 = true;
+return;
+
+// Check if depth 2 is reached;
+label lbl2;
+lbl2 = true;
+return;
+```
+In mlog:
+```
+op add __retAddr @counter 3
+write __retAddr cell1 __stack
+op add __stack __stack 1
+jump 11 always
+set lbl0 true
+# Test if setup is correct
+op land result lbl0 lbl1
+op land result result lbl2
+jump 10 notEqual result true
+print "Setup is working"
+printflush message1
+end
+# Check if depth 1 is reached
+op add __retAddr @counter 3
+write __retAddr cell1 __stack
+op add __stack __stack 1
+jump 18 always
+set lbl1 true
+op sub __stack __stack 1
+read @counter cell1 __stack
+# Check if depth 2 is reached
+set lbl2 true
+op sub __stack __stack 1
+read @counter cell1 __stack
+```
 
 ## Coding Examples
 
