@@ -87,7 +87,7 @@ namespace MlogCompiler
             List<string> lines = new List<string>();
 
             // Add opening code
-            lines.AddRange(OpeningCode(branch.instruction, out string label));
+            lines.AddRange(OpeningCode(branch.instruction, out string[]? labels));
 
             // Add code for all children
             if(branch.children != null)
@@ -95,7 +95,7 @@ namespace MlogCompiler
                     lines.AddRange(ConvertBranch(child));
 
             // Add closing code
-            lines.AddRange(ClosingCode(branch.instruction, label));
+            lines.AddRange(ClosingCode(branch.instruction, labels));
 
             return lines;
         }
@@ -409,11 +409,11 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>
-        static List<string> OpeningCode(Instruction instruction, out string label)
+        static List<string> OpeningCode(Instruction instruction, out string[]? labels)
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
-            label = "";
+            labels = null;
             // if(parameters is null) return lines;
 
             // Mlog code for each instruction type
@@ -455,26 +455,27 @@ namespace MlogCompiler
                         goto case InstructionType.Null;
                     case InstructionType.ForLoop:
                         lines.Add($"set {parameters[0]} {parameters[1]}\n");
-                        label = $"__for{currentLabel}";
-                        lines.Add("label " + label);
+                        labels[0] = $"__for{currentLabel}";
+                        lines.Add("label " + labels[0]);
                         currentLabel++;
                         return lines;
                     case InstructionType.WhileLoop:
-                        label = $"__while{currentLabel}";
-                        lines.Add("label " + label);
+                        labels = new string[] { $"__while{currentLabel}", $"__break{currentLabel}" };
+                        lines.Add("label " + labels[0]);
+                        lines.Add($"jump {labels[1]} if {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}"); // Pre-test functionality
                         currentLabel++;
                         return lines;
                     case InstructionType.If:
                         if(parameters[1] == "===")
                         {
                             lines.Add($"op strictEqual __if {parameters[0]} {parameters[2]}");
-                            label = $"__if{currentLabel}";
-                            lines.Add($"jump {label} notEqual __if true");
+                            labels = new string[] { $"__if{currentLabel}" };
+                            lines.Add($"jump {labels[0]} notEqual __if true");
                         }
                         else
                         {
-                            label = $"__if{currentLabel}";
-                            lines.Add($"jump {label} {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}");
+                            labels = new string[] { $"__if{currentLabel}" };
+                            lines.Add($"jump {labels[0]} {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}");
                         }
                         currentLabel++;
                         return lines;
@@ -502,7 +503,7 @@ namespace MlogCompiler
         /// </summary>
         /// <param name="instruction"></param>
         /// <returns></returns>
-        static List<string> ClosingCode(Instruction instruction, string label)
+        static List<string> ClosingCode(Instruction instruction, string[]? labels)
         {
             List<string> lines = new List<string>();
             string[]? parameters = instruction.parameters;
@@ -516,13 +517,14 @@ namespace MlogCompiler
                     case InstructionType.ForLoop:
                         // bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
                         lines.Add($"op add {parameters[0]} {parameters[0]} 1");
-                        lines.Add($"jump {label} lessThan {parameters[0]} {parameters[2]}");
+                        lines.Add($"jump {labels[0]} lessThan {parameters[0]} {parameters[2]}");
                         return lines;
                     case InstructionType.WhileLoop:
-                        lines.Add($"jump {label} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
+                        lines.Add($"jump {labels[0]} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
+                        lines.Add($"label {labels[1]}"); // To skip the while loop
                         return lines;
                     case InstructionType.If:
-                        lines.Add("label " + label);
+                        lines.Add("label " + labels[0]);
                         return lines;
                     default:
                         return lines;
