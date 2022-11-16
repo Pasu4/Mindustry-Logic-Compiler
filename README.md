@@ -137,8 +137,8 @@ op add i i 1
 jump 2 lessThan i 10
 ```
 ### Operators
-Operators are used to change the value of variables. The syntax is varies for each operator, you can find it in the table below. HLMlog also uses slightly different operators from Mlog.
-| Operator                    | Mlog (Editor) | Mlog (Export) | HLMlog | Syntax                  |
+Operators are used to change the value of variables. The syntax varies for each operator, you can find it in the table below. HLmlog also uses slightly different operators from mlog.
+| Operator                    | mlog (Editor) | mlog (Export) | HLmlog | Syntax                  |
 |:---------------------------:|:-------------:|:-------------:|:------:|:-----------------------:|
 | Addition                    | \+            | add           | \+     | `result = a + b;`       |
 | Subtraction                 | \-            | sub           | \-     | `result = a - b;`       |
