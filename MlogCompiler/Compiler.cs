@@ -619,7 +619,14 @@ namespace MlogCompiler
             {
                 if(code[i].StartsWith("label "))
                 {
-                    jumps.Add(code[i].Substring(6), l); // Cut off "label "
+                    try
+                    {
+                        jumps.Add(code[i].Substring(6), l); // Cut off "label "
+                    }
+                    catch(ArgumentException)
+                    {
+                        throw new CompilationException($"Label {code[i].Substring(6)} is declared more than once");
+                    }
                     code.RemoveAt(i);
                     continue;
                 }
@@ -704,7 +711,7 @@ namespace MlogCompiler
                 return code
                     .Split(Environment.NewLine)
                     .Where(s => s.StartsWith('#'))
-                    .Select(s => (CompilerOptions) Enum.Parse(typeof(CompilerOptions), s.Substring(1)))
+                    .Select(s => (CompilerOptions) Enum.Parse(typeof(CompilerOptions), s.AsSpan(1))) // Performance
                     .ToArray()
                     .Aggregate(CompilerOptions.None, (combined, next) => combined |= next, o => o);
             }

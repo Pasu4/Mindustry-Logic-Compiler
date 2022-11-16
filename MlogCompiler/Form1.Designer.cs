@@ -34,6 +34,10 @@
             this.label2 = new System.Windows.Forms.Label();
             this.compileButton = new System.Windows.Forms.Button();
             this.statusLabel = new System.Windows.Forms.Label();
+            this.importButton = new System.Windows.Forms.Button();
+            this.exportButton = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.SuspendLayout();
             // 
             // textBox1
@@ -94,11 +98,47 @@
             this.statusLabel.TabIndex = 5;
             this.statusLabel.Text = "Ready";
             // 
+            // importButton
+            // 
+            this.importButton.Location = new System.Drawing.Point(112, 409);
+            this.importButton.Name = "importButton";
+            this.importButton.Size = new System.Drawing.Size(94, 29);
+            this.importButton.TabIndex = 6;
+            this.importButton.Text = "Import";
+            this.importButton.UseVisualStyleBackColor = true;
+            this.importButton.Click += new System.EventHandler(this.importButton_Click);
+            // 
+            // exportButton
+            // 
+            this.exportButton.Location = new System.Drawing.Point(212, 409);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(94, 29);
+            this.exportButton.TabIndex = 7;
+            this.exportButton.Text = "Export";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.DefaultExt = "hlog";
+            this.openFileDialog1.Filter = "High-level Mindustry Logic files (*.hlog)|*.hlog|Text files (*.txt)|*.txt|All fil" +
+    "es (*.*)|*.*";
+            this.openFileDialog1.RestoreDirectory = true;
+            // 
+            // saveFileDialog1
+            // 
+            this.saveFileDialog1.DefaultExt = "hlog";
+            this.saveFileDialog1.Filter = "Mindustry Logic files (*.mlog)|*.mlog|Text files (*.txt)|*.txt|All files (*.*)|*." +
+    "*";
+            this.saveFileDialog1.RestoreDirectory = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.exportButton);
+            this.Controls.Add(this.importButton);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.compileButton);
             this.Controls.Add(this.label2);
@@ -120,5 +160,9 @@
         private Label label2;
         private Button compileButton;
         private Label statusLabel;
+        private Button importButton;
+        private Button exportButton;
+        private OpenFileDialog openFileDialog1;
+        private SaveFileDialog saveFileDialog1;
     }
 }

@@ -1,5 +1,6 @@
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
+#pragma warning disable IDE1006 // Auto-named methods
 namespace MlogCompiler
 {
     public partial class Form1 : Form
@@ -28,7 +29,7 @@ namespace MlogCompiler
             else
             {
                 statusLabel.ForeColor = Color.Red;
-                statusLabel.Text = ex.Message;
+                statusLabel.Text = ex!.Message;
             }
         }
 
@@ -50,5 +51,32 @@ namespace MlogCompiler
                 return "";
             }
         }
+
+        private void importButton_Click(object sender, EventArgs e)
+        {
+            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                // string path = saveFileDialog1.FileName;
+                Stream stream = openFileDialog1.OpenFile();
+                StreamReader sr = new StreamReader(stream);
+                textBox1.Text = sr.ReadToEnd();
+            }
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
+            saveFileDialog1.FileName = openFileDialog1.FileName;
+            if(saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                Stream stream = saveFileDialog1.OpenFile();
+                if(stream != null)
+                {
+                    StreamWriter sr = new StreamWriter(stream);
+                    sr.Write(textBox2.Text);
+                    stream.Close();
+                }
+            }
+        }
     }
 }
+#pragma warning restore IDE1006
