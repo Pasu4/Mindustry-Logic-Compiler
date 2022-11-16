@@ -256,6 +256,12 @@ namespace MlogCompiler
                 case "label":
                     instruction.instructionType = InstructionType.Label;
                     break;
+                case "sub":
+                    instruction.instructionType = InstructionType.Sub;
+                    break;
+                case "return":
+                    instruction.instructionType = InstructionType.Return;
+                    break;
 
                 // Unit control
                 case "unitbind":
@@ -445,6 +451,7 @@ namespace MlogCompiler
                 {InstructionType.End, "end"},
                 {InstructionType.Jump, "jump"},
                 {InstructionType.Label, "label"},
+                {InstructionType.Sub, "jump"},
                 {InstructionType.UnitBind, "ubind"},
                 {InstructionType.UnitControl, "ucontrol"},
                 {InstructionType.UnitRadar, "uradar"},
@@ -498,6 +505,12 @@ namespace MlogCompiler
                             lines.Add($"jump {labels[0]} {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}");
                         }
                         currentLabel++;
+                        return lines;
+                    case InstructionType.Sub:
+                        lines.Add("op add __retAddr @counter 1");
+                        goto default; // Rest is normal jump statement
+                    case InstructionType.Return:
+                        lines.Add("set @counter __retAddr");
                         return lines;
                     case InstructionType.Comment:
                         lines.AddRange(parameters[0].Split(Environment.NewLine).Select(l => "# " + l.Trim()));
