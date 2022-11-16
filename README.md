@@ -70,8 +70,8 @@ jump 3 notEqual i 0
 write 1 cell1 0
 end
 ```
-### while loop
-A while loop executes its scope until the exit condition is met, after which it exits. It is a post-test loop. To make it a pre-test loop, put it in an if statement.
+### while / dowhile loop
+A while loop executes its scope until the exit condition is met, after which it exits. It is a pre-test loop. To make it a post-test loop, write `dowhile` instead of `while`.
 ```
 i = 10;
 while(i > 0)
@@ -82,16 +82,50 @@ while(i > 0)
 compiles to
 ```
 set i 10
+jump 4 lessThanEq i 0
+op sub i i 1
+jump 1 greaterThan i 0
+end
+```
+With a `dowhile` loop,
+```
+i = 10;
+dowhile(i > 0)
+{
+    i = i - 1;
+}
+```
+compiles to
+```
+set i 10
 op sub i i 1
 jump 1 greaterThan i 0
 ```
-### for loop
-A for loop increments a variable every time after it runs its scope and exits once it reaches an exit value. The syntax is `for(<iterator>, <start>, <end>)`. The loop starts at `<start>` and exits if the iterator variable reaches `<end>` after incrementing, which makes it exclusive.
+### for / dofor loop
+A for loop increments a variable every time after it runs its scope and exits once it reaches an exit value. The syntax is `for(<iterator>, <start>, <end>)`. The loop starts at `<start>` and exits if the iterator variable reaches `<end>` after incrementing, which makes it exclusive. It is a pre-test loop. To make it a post-test loop, write `dofor` instead of `for`.
 ```
 j = 0;
 for(i, 0, 10)
 {
-    j += i;
+    j = j + i;
+}
+```
+compiles to
+```
+set j 0
+set i 0
+jump 6 greaterThanEq i 10
+op add j j i
+op add i i 1
+jump 3 lessThan i 10
+end
+```
+With a `dofor` loop,
+```
+j = 0;
+dofor(i, 0, 10)
+{
+    j = j + i;
 }
 ```
 compiles to
@@ -99,12 +133,12 @@ compiles to
 set j 0
 set i 0
 op add j j i
+op add i i 1
 jump 2 lessThan i 10
 ```
-For loops are post-test loops.
 ### Operators
-Operators are used to change the value of variables. The syntax is varies for each operator, you can find it in the table below. HLMlog also uses slightly different operators from Mlog.
-| Operator                    | Mlog (Editor) | Mlog (Export) | HLMlog | Syntax                  |
+Operators are used to change the value of variables. The syntax varies for each operator, you can find it in the table below. HLmlog also uses slightly different operators from mlog.
+| Operator                    | mlog (Editor) | mlog (Export) | HLmlog | Syntax                  |
 |:---------------------------:|:-------------:|:-------------:|:------:|:-----------------------:|
 | Addition                    | \+            | add           | \+     | `result = a + b;`       |
 | Subtraction                 | \-            | sub           | \-     | `result = a - b;`       |
