@@ -10,7 +10,7 @@ Extra spaces and tabs are ignored. `result = a;` is interpreted the same as <cod
 
 Variables should not start with two underscores, since this is the naming convention used by the compiler for flow control.
 
-Every line needs to be terminated by a semicolon (`;`). This includes comments.
+Every line (excluding compiler options) needs to be terminated by a semicolon (`;`). This includes comments.
 ### Comments
 A comment is opened by `//` and closed by a semicolon. Compiler comments are opened with `///` and don't show up in the compiled code.
 ```
@@ -199,7 +199,7 @@ Only one operator can be used per line, writing ´result = a + b + c´ is not po
 The `sub` statement works like a `jump` statement, but also writes a return point to memory. A `return` statement returns to the last `sub` statement that was called. The `sub` statement thereby acts like a method call. By default, `sub` statements cannot be nested. To change this, use the compiler option `UseStack`.
 
 ## Compiler Options
-Compiler options tell the compiler how to process your code. To activate a compiler option, add a `#` followed by the name of the compiler option.
+Compiler options tell the compiler how to process your code. To activate a compiler option, add a `#` followed by the name of the compiler option. Lines with compiler options are not with by a semicolon, but with a newline.
 
 ### None
 This compiler option is implied if no compiler options are specified. It does not change how the compiler runs.
@@ -209,9 +209,9 @@ This compiler option is implied if no compiler options are specified. It does no
 No impact.
 
 ### UseStack
-Makes use of a data cell to store references to code lines. This used to nest multiple `sub` statements. Since it uses a data cell, the maximum depth is 64.
+Makes use of a data cell to store references to code lines. This is used to nest multiple `sub` statements. Since it uses a data cell, the maximum depth is 64.
 #### Requires
-- A data cell with the name cell1 connected to the processor
+- A data cell with the name cell1 linked to the processor
 #### Performance
 Adds two lines to every `sub` statement and one line to every `return` statement.
 #### Example
