@@ -11,7 +11,7 @@
             Wait, Stop, End, Jump, Label,
             UnitBind, UnitControl, UnitRadar, UnitLocate,
             Comment, CompilerComment,
-            ForLoop, WhileLoop, If
+            ForLoop, WhileLoop,DoForLoop, DoWhileLoop, If
         }
 
         public InstructionType instructionType;

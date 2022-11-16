@@ -293,6 +293,13 @@ namespace MlogCompiler
                 case "if":
                     instruction.instructionType = InstructionType.If;
                     break;
+                case "dofor":
+                    instruction.instructionType = InstructionType.DoForLoop;
+                    break;
+                case "dowhile":
+                    instruction.instructionType = InstructionType.DoWhileLoop;
+                    break;
+
 
                 // Explicit Set / Op (for mlog import)
                 case "set":
@@ -453,16 +460,28 @@ namespace MlogCompiler
                         return lines;
                     case InstructionType.CompilerComment:
                         goto case InstructionType.Null;
+                    case InstructionType.DoForLoop:
+                        lines.Add($"set {parameters[0]} {parameters[1]}\n");
+                        labels = new string[] { $"__for{currentLabel}" };
+                        lines.Add("label " + labels[0]);
+                        currentLabel++;
+                        return lines;
+                    case InstructionType.DoWhileLoop:
+                        labels = new string[] { $"__while{currentLabel}" };
+                        lines.Add("label " + labels[0]);
+                        currentLabel++;
+                        return lines;
                     case InstructionType.ForLoop:
                         lines.Add($"set {parameters[0]} {parameters[1]}\n");
-                        labels[0] = $"__for{currentLabel}";
+                        labels = new string[] { $"__for{currentLabel}", $"__break{currentLabel}" };
+                        lines.Add($"jump {labels[1]} greaterThanEq {parameters[0]} {parameters[2]}"); // Pre-test
                         lines.Add("label " + labels[0]);
                         currentLabel++;
                         return lines;
                     case InstructionType.WhileLoop:
                         labels = new string[] { $"__while{currentLabel}", $"__break{currentLabel}" };
                         lines.Add("label " + labels[0]);
-                        lines.Add($"jump {labels[1]} if {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}"); // Pre-test functionality
+                        lines.Add($"jump {labels[1]} {OpToMlog(InverseOp(parameters[1]))} {parameters[0]} {parameters[2]}"); // Pre-test
                         currentLabel++;
                         return lines;
                     case InstructionType.If:
@@ -514,10 +533,18 @@ namespace MlogCompiler
                 switch(instruction.instructionType)
                 {
 #nullable disable
+                    case InstructionType.DoForLoop:
+                        lines.Add($"op add {parameters[0]} {parameters[0]} 1");
+                        lines.Add($"jump {labels[0]} lessThan {parameters[0]} {parameters[2]}");
+                        return lines;
+                    case InstructionType.DoWhileLoop:
+                        lines.Add($"jump {labels[0]} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
+                        return lines;
                     case InstructionType.ForLoop:
                         // bool ascent = int.Parse(parameters[1]) < int.Parse(parameters[2]);
                         lines.Add($"op add {parameters[0]} {parameters[0]} 1");
                         lines.Add($"jump {labels[0]} lessThan {parameters[0]} {parameters[2]}");
+                        lines.Add($"label {labels[1]}"); // To skip the for loop
                         return lines;
                     case InstructionType.WhileLoop:
                         lines.Add($"jump {labels[0]} {OpToMlog(parameters[1])} {parameters[0]} {parameters[2]}");
