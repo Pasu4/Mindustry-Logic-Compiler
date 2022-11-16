@@ -149,6 +149,7 @@ Operators are used to change the value of variables. The syntax is varies for ea
 Only one operator can be used per line, writing ´result = a + b + c´ is not possible. Short forms like `result += a;` currently do not work. Operators whithout brackets (eg. \+ or \-) and the equal sign for assignment (`=`) must be separated with spaces from their operand(s), writing `result=10^3` is not currently possible.
 ## Coding Examples
 ### Coordinated fire
+This code checks if the player is controlling a linked turret, and if so, makes all turres mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. When the player leaves the turret, the processor releases control over the turrets. Should be used at least on a medium logic processor if you want to control more than four turrets.
 ```
 for(i, 0, @links)
 {
@@ -178,7 +179,7 @@ for(i, 0, @links)
 // Unregister player if not found for two loops;
 found = found - 1;
 ```
-This code checks if the player is controlling a linked turret, and if so, makes all turres mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. The compiled code in mlog looks like this:
+The compiled code in mlog looks like this:
 ```
 set i 0
 # Iterate through every building
