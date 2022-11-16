@@ -1,5 +1,5 @@
 # Mindustry Logic Compiler
-Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLMlog), a high-level programming language that compiles to Mindustry Logic. It tries to make Mindustry Logic easier to write.
+Mindustry Logic Compiler is a compiler for High-Level Mindustry Logic (HLMlog), a high-level programming language that compiles to Mindustry Logic. It aims to make Mindustry Logic easier to write and more human-readable.
 ## Syntax
 ### General
 In HLMlog as well as in Mlog, variables are dynamically typed, meaning the data type or the variable itself do not need to be declared. Every variable's default value is null.
@@ -145,3 +145,57 @@ Operators are used to change the value of variables. The syntax is varies for ea
 | Arc tangent                 | atan          | atan          |atan    | `result = atan(a);`     |
 
 Only one operator can be used per line. Short forms like `result += a;` currently do not work.
+## Coding Examples
+### Coordinated fire
+```
+for(i, 0, @links)
+{
+    // Iterate through every building;
+    building = GetLink(i);
+    control = Sensor(building, @controlled);
+
+    // Check if a player is controlling the turret;
+    if(control == @ctrlPlayer)
+    {
+        player = building;
+        found = 2;
+    }
+
+    // Checks if player is still there;
+    if(found > 0)
+    {
+        // Get player action;
+        x = Sensor(player, @shootX);
+        y = Sensor(player, @shootY);
+        shoot = Sensor(player, @shooting);
+
+        //Set turret values;
+        building.Control(shoot, x, y, shoot);
+    }
+}
+// Unregister player if not found for two loops;
+found = found - 1;
+```
+This code checks if the player is controlling a linked turret, and if so, makes all turres mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. The compiled code looks like this:
+```
+set i 0
+# Iterate through every building
+getlink building i
+sensor control building @controlled
+# Check if a player is controlling the turret
+jump 6 notEqual control @ctrlPlayer
+set player building
+set found 2
+# Checks if player is still there
+jump 11 lessThanEq found 0
+# Get player action
+sensor x player @shootX
+sensor y player @shootY
+sensor shoot player @shooting
+# Set turret values
+control shoot building x y shoot
+op add i i 1
+jump 1 lessThan i @links
+# Unregister player if not found for two loops
+op sub found found 1
+```
