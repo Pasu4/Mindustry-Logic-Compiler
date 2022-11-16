@@ -191,20 +191,30 @@ Operators are used to change the value of variables. The syntax varies for each 
 
 Only one operator can be used per line, writing ´result = a + b + c´ is not possible. Short forms like `result += a;` currently do not work. Operators whithout brackets (eg. \+ or \-) and the equal sign for assignment (`=`) must be separated with spaces from their operand(s), writing `result=10^3` is not currently possible.
 
-### sub / return statements
-The `sub` statement works like a `jump` statement, but also writes a return point to memory. A `return` statement returns to the last `sub` statement that was called. The `sub` statement thereby acts like a method call. By default, `sub` statements cannot be nested. To activate this, use the compiler option `UseStack`.
+### sub / return statement
+The `sub` statement works like a `jump` statement, but also writes a return point to memory. A `return` statement returns to the last `sub` statement that was called. The `sub` statement thereby acts like a method call. By default, `sub` statements cannot be nested. To change this, use the compiler option `UseStack`.
 
 ## Compiler Options
 Compiler options tell the compiler how to process your code. To activate a compiler option, add a `#` followed by the name of the compiler option.
 
-### UseStack
-Makes use of a data cell to store references to code lines. This used to nest multiple `sub` statements.
+### None
+This compiler option is implied if no compiler options are specified. It does not change how the compiler runs.
+#### Requires
+- Nothing
+#### Performance
+No impact.
 
-*Requires:* A data cell with the name cell1 connected to the processor
+### UseStack
+Makes use of a data cell to store references to code lines. This used to nest multiple `sub` statements. Since it uses a data cell, the maximum depth is 64.
+#### Requires
+- A data cell with the name cell1 connected to the processor
+#### Performance
+Adds two lines to every `sub` statement and two lines to every `return` statement.
 
 ## Coding Examples
+
 ### Coordinated fire
-This code checks if the player is controlling a linked turret, and if so, makes all turrets mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. When the player leaves the turret, the processor releases control over the turrets. Should be used at least on a medium logic processor if you want to control more than four turrets.
+This code checks if the player is controlling a linked turret, and if so, makes all turrets mimic the player's actions. The turrets aim at the target of the player and shoot when the player does. When the player leaves the turret, the processor releases control over the turrets. Should be run at least on a medium logic processor if you want to control more than four turrets.
 ```
 for(i, 0, @links)
 {
